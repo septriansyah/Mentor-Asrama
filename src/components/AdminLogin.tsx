@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Shield, Lock, Mail, ArrowLeft, AlertCircle } from 'lucide-react';
+import logoFull from '../assets/logo-full.png';
 
 const ADMIN_EMAIL = 'admin@mentor.id';
 const ADMIN_PASSWORD = 'SPM-Adm1n#2026';
@@ -41,7 +42,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBack }) => 
   };
 
   return (
-    <div className="min-h-screen bg-maroon-900 text-white flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-navy-900 text-white flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full mx-auto space-y-6">
         {/* Back button */}
         <button
@@ -54,18 +55,25 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBack }) => 
           <span>Kembali ke Beranda Utama</span>
         </button>
 
+        {/* Logo */}
+        <div className="flex justify-center">
+          <div className="bg-white rounded-xl px-4 py-2 shadow-md">
+            <img src={logoFull} alt="Satyasena" className="h-8 w-auto" />
+          </div>
+        </div>
+
         {/* Card */}
         <div className="bg-white text-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
-          <div className="bg-maroon-700 text-white p-6 text-center relative overflow-hidden">
-            <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-gold-300/20 blur-xl pointer-events-none" />
+          <div className="bg-navy-700 text-white p-6 text-center relative overflow-hidden">
+            <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-sky-300/20 blur-xl pointer-events-none" />
 
-            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md text-gold-300 flex items-center justify-center mx-auto mb-3 shadow-xs">
+            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md text-sky-300 flex items-center justify-center mx-auto mb-3 shadow-xs">
               <Shield className="w-6 h-6" />
             </div>
             <h2 className="text-xl font-black uppercase tracking-tight text-white">
               Portal Administrator
             </h2>
-            <p className="text-xs text-cream-100 mt-1">
+            <p className="text-xs text-ice-100 mt-1">
               Area Khusus Pengelola & Master Control
             </p>
           </div>
@@ -94,7 +102,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBack }) => 
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin@mentor.id"
                     required
-                    className="w-full pl-10 pr-3.5 py-3 text-sm bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 outline-hidden transition-colors"
+                    className="w-full pl-10 pr-3.5 py-3 text-sm bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-700 focus:border-navy-700 outline-hidden transition-colors"
                   />
                 </div>
               </div>
@@ -114,7 +122,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBack }) => 
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="w-full pl-10 pr-3.5 py-3 text-sm bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700 outline-hidden transition-colors"
+                    className="w-full pl-10 pr-3.5 py-3 text-sm bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-700 focus:border-navy-700 outline-hidden transition-colors"
                   />
                 </div>
               </div>
@@ -123,7 +131,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBack }) => 
                 id="btn-admin-submit"
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 px-4 rounded-xl bg-maroon-700 hover:bg-maroon-800 text-white font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer disabled:opacity-50 mt-2"
+                className="w-full py-3.5 px-4 rounded-xl bg-navy-700 hover:bg-navy-800 text-white font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center cursor-pointer disabled:opacity-50 mt-2"
               >
                 {isLoading ? 'Memverifikasi...' : 'Masuk Master Control'}
               </button>

@@ -2,87 +2,70 @@
   "entities": {
     "Siswa": {
       "title": "Siswa",
-      "description": "Dokumen data siswa mentor dan mentee",
+      "description": "Dokumen data siswa (Mentor & Mentee)",
       "type": "object",
       "properties": {
-        "nama": {
-          "type": "string",
-          "maxLength": 100
-        },
-        "status": {
-          "type": "string",
-          "enum": ["Mentor", "Mentee"]
-        },
-        "angkatan": {
-          "type": "number"
-        },
-        "kamar": {
-          "type": "string",
-          "maxLength": 20
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time"
-        }
+        "nama": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["Mentor", "Mentee"] },
+        "angkatan": { "type": "number" },
+        "kamar": { "type": "string", "maxLength": 20, "description": "Nomor kamar fisik" },
+        "gedung": { "type": "string", "maxLength": 50 },
+        "lantai": { "type": "number" },
+        "kelompok": { "type": "string", "maxLength": 20, "description": "Unik per gedung+lantai, bukan unik global" },
+        "prioritasSekamar": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["nama", "status", "angkatan", "kamar"]
+      "required": ["nama", "status", "angkatan", "kamar", "gedung", "lantai", "kelompok", "prioritasSekamar"]
     },
     "Indikator": {
       "title": "Indikator",
-      "description": "5 dokumen indikator penilaian",
+      "description": "Indikator penilaian yang dikelola admin (jumlah tidak dibatasi)",
       "type": "object",
       "properties": {
-        "urutan": {
-          "type": "number"
+        "urutan": { "type": "number" },
+        "nama": { "type": "string", "maxLength": 100 },
+        "deskripsi": { "type": "string", "maxLength": 500 },
+        "opsiNilai": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "label": { "type": "string" },
+              "score": { "type": "number" }
+            }
+          }
         },
-        "nama": {
-          "type": "string",
-          "maxLength": 100
-        },
-        "deskripsi": {
-          "type": "string",
-          "maxLength": 500
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time"
-        }
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["urutan", "nama", "deskripsi"]
     },
     "Penilaian": {
       "title": "Penilaian",
-      "description": "Dokumen penilaian tiap mentee per indikator",
+      "description": "Penilaian satu mentee untuk satu bulan tertentu (satu mentee bisa punya beberapa dokumen, satu per bulan)",
       "type": "object",
       "properties": {
-        "siswaId": {
-          "type": "string",
-          "maxLength": 128
-        },
-        "kamar": {
-          "type": "string",
-          "maxLength": 20
-        },
-        "nilai": {
-          "type": "object"
-        },
-        "diisiOleh": {
-          "type": "string",
-          "maxLength": 100
-        },
-        "lengkap": {
-          "type": "boolean"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time"
-        }
+        "siswaId": { "type": "string", "maxLength": 128 },
+        "bulan": { "type": "string", "enum": ["September", "Oktober", "November", "Desember"] },
+        "kamar": { "type": "string", "maxLength": 20 },
+        "nilai": { "type": "object", "description": "Map urutan indikator -> skor 0-100" },
+        "diisiOleh": { "type": "string", "maxLength": 100 },
+        "lengkap": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["siswaId", "kamar", "nilai", "diisiOleh", "lengkap"]
+      "required": ["siswaId", "bulan", "kamar", "nilai", "diisiOleh", "lengkap"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Dokumen pengaturan tunggal (id: openMonths) - bulan penilaian yang dibuka admin untuk mentor",
+      "type": "object",
+      "properties": {
+        "months": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["September", "Oktober", "November", "Desember"] }
+        }
+      }
     }
   },
   "firestore": {
@@ -92,11 +75,15 @@
     },
     "/indikator/{indikatorId}": {
       "schema": "Indikator",
-      "description": "5 indikator penilaian yang dikelola admin"
+      "description": "Indikator penilaian dikelola admin"
     },
-    "/penilaian/{siswaId}": {
+    "/penilaian/{penilaianId}": {
       "schema": "Penilaian",
-      "description": "Penilaian per mentee lintas 5 indikator"
+      "description": "penilaianId = `${siswaId}__${bulan}`, satu dokumen per mentee per bulan"
+    },
+    "/settings/openMonths": {
+      "schema": "Settings",
+      "description": "Kontrol bulan mana yang boleh diisi mentor"
     }
   }
 }

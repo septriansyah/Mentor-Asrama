@@ -1,27 +1,29 @@
 @import "tailwindcss";
 
+/* Palet warna diambil langsung dari logo SATYA SENA (navy #0a3152, biru langit #8cd6ea,
+   putih kebiruan #ecf7f9). */
 @theme {
-  --color-maroon-50: #fbebe9;
-  --color-maroon-100: #f4d3d2;
-  --color-maroon-200: #e6a8a7;
-  --color-maroon-300: #d17b7c;
-  --color-maroon-400: #b04f52;
-  --color-maroon-500: #93303a;
-  --color-maroon-600: #7c2432;
-  --color-maroon-700: #6d1f2a;
-  --color-maroon-800: #5c1a22;
-  --color-maroon-900: #42131a;
-  --color-maroon-950: #2c0d12;
+  --color-navy-50: #eaf1f6;
+  --color-navy-100: #cfe0ec;
+  --color-navy-200: #a3c3da;
+  --color-navy-300: #70a0c0;
+  --color-navy-400: #4780a3;
+  --color-navy-500: #2a5f83;
+  --color-navy-600: #164569;
+  --color-navy-700: #0d3860;
+  --color-navy-800: #0a3152;
+  --color-navy-900: #072541;
+  --color-navy-950: #041a2e;
 
-  --color-gold-50: #fdf6e3;
-  --color-gold-100: #faebc0;
-  --color-gold-200: #f5d76e;
-  --color-gold-300: #f0c419;
-  --color-gold-400: #d4af37;
-  --color-gold-500: #b8860b;
-  --color-gold-600: #8a6d1f;
-  --color-gold-700: #6b5416;
+  --color-sky-50: #f0fbfd;
+  --color-sky-100: #dcf3f9;
+  --color-sky-200: #b8e7f2;
+  --color-sky-300: #8cd6ea;
+  --color-sky-400: #5fc0dc;
+  --color-sky-500: #3aa5c4;
+  --color-sky-600: #2884a0;
+  --color-sky-700: #1f6880;
 
-  --color-cream-50: #fdf3e4;
-  --color-cream-100: #f7ece0;
+  --color-ice-50: #ecf7f9;
+  --color-ice-100: #f5fbfc;
 }

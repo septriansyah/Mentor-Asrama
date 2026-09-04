@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Users, DoorClosed, ArrowLeft, AlertCircle, Sparkles, Check, ChevronDown } from 'lucide-react';
 import { Siswa } from '../types';
+import logoFull from '../assets/logo-full.png';
 
 interface MentorLoginProps {
   mentors: Siswa[];
@@ -68,23 +69,30 @@ export const MentorLogin: React.FC<MentorLoginProps> = ({ mentors, onSuccess, on
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-maroon-900 to-maroon-700 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-navy-900 to-navy-700 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full mx-auto">
       {/* Back button */}
       <button
         id="btn-back-to-roles-mentor"
         type="button"
         onClick={onBack}
-        className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cream-100 hover:text-white transition-colors mb-6 cursor-pointer"
+        className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ice-100 hover:text-white transition-colors mb-6 cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Kembali ke Beranda Utama</span>
       </button>
 
+      {/* Logo */}
+      <div className="flex justify-center mb-6">
+        <div className="bg-white rounded-xl px-4 py-2 shadow-md">
+          <img src={logoFull} alt="Satyasena" className="h-8 w-auto" />
+        </div>
+      </div>
+
       {/* Card */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 sm:p-8">
         <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-xl bg-maroon-600 text-white flex items-center justify-center mx-auto mb-3 shadow-xs">
+          <div className="w-12 h-12 rounded-xl bg-navy-600 text-white flex items-center justify-center mx-auto mb-3 shadow-xs">
             <Users className="w-6 h-6" />
           </div>
           <h2 className="text-xl font-bold text-slate-900">Masuk sebagai Mentor</h2>
@@ -110,7 +118,7 @@ export const MentorLogin: React.FC<MentorLoginProps> = ({ mentors, onSuccess, on
               <button
                 type="button"
                 onClick={() => setShowSuggestions((prev) => !prev)}
-                className="text-[11px] text-maroon-600 hover:text-maroon-800 font-medium flex items-center gap-0.5 cursor-pointer"
+                className="text-[11px] text-navy-600 hover:text-navy-800 font-medium flex items-center gap-0.5 cursor-pointer"
               >
                 <span>Lihat daftar mentor</span>
                 <ChevronDown className="w-3 h-3" />
@@ -131,7 +139,7 @@ export const MentorLogin: React.FC<MentorLoginProps> = ({ mentors, onSuccess, on
                 onFocus={() => setShowSuggestions(true)}
                 placeholder="Contoh: Arifinsyah Julitama Hasibuan"
                 required
-                className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-maroon-500 focus:border-maroon-500 outline-hidden transition-colors"
+                className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-500 focus:border-navy-500 outline-hidden transition-colors"
                 autoComplete="off"
               />
             </div>
@@ -147,13 +155,13 @@ export const MentorLogin: React.FC<MentorLoginProps> = ({ mentors, onSuccess, on
                     key={item.id}
                     type="button"
                     onClick={() => handleSelectMentor(item)}
-                    className="w-full text-left px-3 py-2 text-xs hover:bg-maroon-50 flex items-center justify-between transition-colors cursor-pointer"
+                    className="w-full text-left px-3 py-2 text-xs hover:bg-navy-50 flex items-center justify-between transition-colors cursor-pointer"
                   >
                     <div>
                       <div className="font-semibold text-slate-800">{item.nama}</div>
                       <div className="text-[11px] text-slate-500">Angkatan {item.angkatan}</div>
                     </div>
-                    <span className="bg-maroon-100 text-maroon-800 font-medium px-2 py-0.5 rounded text-[11px]">
+                    <span className="bg-navy-100 text-navy-800 font-medium px-2 py-0.5 rounded text-[11px]">
                       Kamar {item.kamar}
                     </span>
                   </button>
@@ -178,7 +186,7 @@ export const MentorLogin: React.FC<MentorLoginProps> = ({ mentors, onSuccess, on
                 onChange={(e) => setKamar(e.target.value)}
                 placeholder="Contoh: 212"
                 required
-                className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-maroon-500 focus:border-maroon-500 outline-hidden transition-colors"
+                className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-500 focus:border-navy-500 outline-hidden transition-colors"
               />
             </div>
           </div>
@@ -186,7 +194,7 @@ export const MentorLogin: React.FC<MentorLoginProps> = ({ mentors, onSuccess, on
           <button
             id="btn-mentor-submit"
             type="submit"
-            className="w-full py-3 px-4 rounded-xl bg-maroon-600 text-white font-medium text-sm hover:bg-maroon-700 transition-colors shadow-xs flex items-center justify-center cursor-pointer"
+            className="w-full py-3 px-4 rounded-xl bg-navy-600 text-white font-medium text-sm hover:bg-navy-700 transition-colors shadow-xs flex items-center justify-center cursor-pointer"
           >
             Masuk ke Kamar Mentee
           </button>
@@ -204,10 +212,10 @@ export const MentorLogin: React.FC<MentorLoginProps> = ({ mentors, onSuccess, on
                 key={m.id}
                 type="button"
                 onClick={() => handleSelectMentor(m)}
-                className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-slate-200 hover:border-maroon-400 hover:bg-maroon-50/40 text-xs transition-colors text-left cursor-pointer"
+                className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-slate-200 hover:border-navy-400 hover:bg-navy-50/40 text-xs transition-colors text-left cursor-pointer"
               >
                 <span className="font-medium text-slate-700">{m.nama}</span>
-                <span className="text-[11px] font-semibold text-maroon-600 bg-maroon-50 px-2 py-0.5 rounded">
+                <span className="text-[11px] font-semibold text-navy-600 bg-navy-50 px-2 py-0.5 rounded">
                   Kamar {m.kamar}
                 </span>
               </button>

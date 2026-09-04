@@ -108,19 +108,19 @@ export const MentorDashboard: React.FC<MentorDashboardProps> = ({
       )}
 
       {/* Top Banner Card with Brand Maroon + Gold Theme */}
-      <div className="bg-maroon-700 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
-        <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-gold-300/20 blur-2xl pointer-events-none" />
+      <div className="bg-navy-700 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 w-44 h-44 rounded-full bg-sky-300/20 blur-2xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-gold-300 text-xs font-bold mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-sky-300 text-xs font-bold mb-3">
               <DoorClosed className="w-3.5 h-3.5" />
               <span>{kelompokLabel(currentMentor)}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
               Halo, {currentMentor.nama}
             </h2>
-            <p className="text-xs sm:text-sm text-cream-100 mt-1 max-w-xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-ice-100 mt-1 max-w-xl leading-relaxed">
               Anda bertugas sebagai Mentor Pendamping di {kelompokLabel(currentMentor)} (Kamar {currentMentor.kamar}). Isi nilai 5 indikator mentee dampingan Anda langsung di lembar Excel interaktif di bawah.
             </p>
           </div>
@@ -128,16 +128,16 @@ export const MentorDashboard: React.FC<MentorDashboardProps> = ({
           {/* Quick Metrics */}
           <div className="flex items-center gap-3">
             <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-4 py-3 text-center min-w-[90px]">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-gold-100">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-sky-100">
                 Mentee
               </div>
               <div className="text-2xl font-black text-white">{stats.total}</div>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-4 py-3 text-center min-w-[90px]">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-gold-300">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-sky-300">
                 Lengkap
               </div>
-              <div className="text-2xl font-black text-gold-300">{stats.lengkap}</div>
+              <div className="text-2xl font-black text-sky-300">{stats.lengkap}</div>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-4 py-3 text-center min-w-[90px]">
               <div className="text-[11px] font-bold uppercase tracking-wider text-amber-300">
@@ -166,8 +166,8 @@ export const MentorDashboard: React.FC<MentorDashboardProps> = ({
                 !isOpenMonth
                   ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                   : selectedBulan === m
-                  ? 'bg-maroon-700 text-white shadow-xs cursor-pointer'
-                  : 'bg-white border border-slate-200 text-slate-600 hover:border-maroon-300 cursor-pointer'
+                  ? 'bg-navy-700 text-white shadow-xs cursor-pointer'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:border-navy-300 cursor-pointer'
               }`}
             >
               {!isOpenMonth && <Lock className="w-3 h-3" />}
@@ -192,7 +192,7 @@ export const MentorDashboard: React.FC<MentorDashboardProps> = ({
         <div>
           <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             <span>Daftar Mentee {kelompokLabel(currentMentor)}</span>
-            <span className="text-xs bg-maroon-100 text-maroon-700 font-bold px-2.5 py-0.5 rounded-full">
+            <span className="text-xs bg-navy-100 text-navy-700 font-bold px-2.5 py-0.5 rounded-full">
               {roomMentees.length} Siswa
             </span>
           </h3>
@@ -208,7 +208,7 @@ export const MentorDashboard: React.FC<MentorDashboardProps> = ({
             onClick={() => setViewMode('excel')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               viewMode === 'excel'
-                ? 'bg-gold-600 text-white shadow-xs'
+                ? 'bg-sky-600 text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -220,7 +220,7 @@ export const MentorDashboard: React.FC<MentorDashboardProps> = ({
             onClick={() => setViewMode('cards')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               viewMode === 'cards'
-                ? 'bg-maroon-700 text-white shadow-xs'
+                ? 'bg-navy-700 text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -268,7 +268,7 @@ export const MentorDashboard: React.FC<MentorDashboardProps> = ({
                 <div
                   key={mentee.id}
                   id={`card-mentee-${mentee.id}`}
-                  className="bg-white rounded-2xl border border-slate-200 hover:border-maroon-400 transition-all p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  className="bg-white rounded-2xl border border-slate-200 hover:border-navy-400 transition-all p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -297,7 +297,7 @@ export const MentorDashboard: React.FC<MentorDashboardProps> = ({
                   <button
                     type="button"
                     onClick={() => handleOpenAssessment(mentee)}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-maroon-700 hover:bg-maroon-800 text-white text-xs font-bold transition-colors cursor-pointer"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-navy-700 hover:bg-navy-800 text-white text-xs font-bold transition-colors cursor-pointer"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
                     <span>{hasValues ? 'Ubah Nilai' : 'Isi Nilai'}</span>

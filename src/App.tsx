@@ -30,17 +30,25 @@ function clearRoute() {
 
 export default function App() {
   const [activeRole, setActiveRole] = useState<ActiveRole>('none');
-  const [currentMentor, setCurrentMentor] = useState<Siswa | null>(null);
+  const [currentMentorId, setCurrentMentorId] = useState<string | null>(null);
   const [adminEmail, setAdminEmail] = useState<string | null>(null);
 
   // Route state - #admin dan #mentor masing-masing punya halaman login sendiri (bukan modal)
   const [route, setRoute] = useState<Route>('none');
 
-  // Core collections data state
+  // Core collections - sekarang live dari Firestore (real-time, dibagi semua device)
   const [siswaList, setSiswaList] = useState<Siswa[]>([]);
   const [indikatorList, setIndikatorList] = useState<Indikator[]>([]);
   const [penilaianList, setPenilaianList] = useState<Penilaian[]>([]);
   const [openMonths, setOpenMonths] = useState<AssessmentMonth[]>([]);
+
+  const [loaded, setLoaded] = useState({ siswa: false, indikator: false, penilaian: false, bulan: false });
+  const [firestoreError, setFirestoreError] = useState<string | null>(null);
+  const isDataLoading = !(loaded.siswa && loaded.indikator && loaded.penilaian && loaded.bulan);
+
+  // currentMentor selalu diturunkan dari siswaList yang live - otomatis ikut ter-update kalau
+  // datanya berubah (atau otomatis jadi null kalau akunnya dihapus admin), tanpa perlu disinkron manual.
+  const currentMentor = siswaList.find((s) => s.id === currentMentorId) || null;
 
   // Pantau URL untuk #admin / #mentor
   useEffect(() => {
@@ -54,20 +62,55 @@ export default function App() {
     };
   }, []);
 
-  // Load initial data
-  const refreshData = () => {
-    setSiswaList(StorageService.getSiswa());
-    setIndikatorList(StorageService.getIndikator());
-    setPenilaianList(StorageService.getPenilaian());
-    setOpenMonths(StorageService.getOpenMonths());
-  };
-
+  // Seed Firestore sekali (kalau masih kosong total) lalu pasang listener real-time untuk semua
+  // koleksi. Setiap perubahan dari device/mentor/admin manapun langsung terpantul ke semua device lain.
   useEffect(() => {
-    refreshData();
+    let cancelled = false;
+
+    StorageService.ensureSeeded().catch((err) => {
+      if (!cancelled) {
+        setFirestoreError(
+          'Gagal menghubungi Firestore. Periksa konfigurasi Firebase (VITE_FIREBASE_*) di file .env.local.'
+        );
+      }
+      console.error('ensureSeeded error:', err);
+    });
+
+    const onError = (label: string) => (err: Error) => {
+      setFirestoreError(
+        'Gagal menghubungi Firestore. Periksa konfigurasi Firebase (VITE_FIREBASE_*) dan aturan keamanan (firestore.rules).'
+      );
+      console.error(`${label} subscription error:`, err);
+    };
+
+    const unsubSiswa = StorageService.subscribeSiswa((list) => {
+      setSiswaList(list);
+      setLoaded((prev) => ({ ...prev, siswa: true }));
+    }, onError('siswa'));
+    const unsubIndikator = StorageService.subscribeIndikator((list) => {
+      setIndikatorList(list);
+      setLoaded((prev) => ({ ...prev, indikator: true }));
+    }, onError('indikator'));
+    const unsubPenilaian = StorageService.subscribePenilaian((list) => {
+      setPenilaianList(list);
+      setLoaded((prev) => ({ ...prev, penilaian: true }));
+    }, onError('penilaian'));
+    const unsubOpenMonths = StorageService.subscribeOpenMonths((months) => {
+      setOpenMonths(months);
+      setLoaded((prev) => ({ ...prev, bulan: true }));
+    }, onError('openMonths'));
+
+    return () => {
+      cancelled = true;
+      unsubSiswa();
+      unsubIndikator();
+      unsubPenilaian();
+      unsubOpenMonths();
+    };
   }, []);
 
   // Pulihkan sesi login yang tersimpan (kalau ada) - jadi refresh halaman TIDAK logout otomatis.
-  // Hanya jalan sekali di awal, setelah data siswa termuat.
+  // Hanya jalan sekali di awal; currentMentor akan otomatis terisi begitu siswaList termuat.
   useEffect(() => {
     const session = StorageService.getSession();
     if (!session) return;
@@ -76,17 +119,19 @@ export default function App() {
       setAdminEmail(session.adminEmail);
       setActiveRole('admin');
     } else if (session.role === 'mentor' && session.mentorId) {
-      const mentor = StorageService.getSiswa().find((s) => s.id === session.mentorId);
-      if (mentor) {
-        setCurrentMentor(mentor);
-        setActiveRole('mentor');
-      } else {
-        // Mentor sudah tidak ada di data (dihapus admin) - sesi lama tidak valid lagi
-        StorageService.clearSession();
-      }
+      setCurrentMentorId(session.mentorId);
+      setActiveRole('mentor');
+    }
+  }, []);
+
+  // Kalau mentor yang sedang login datanya dihapus admin (siswaList berubah, currentMentor jadi
+  // null), otomatis logout - jangan biarkan mentor "menggantung" di dashboard tanpa data.
+  useEffect(() => {
+    if (!isDataLoading && activeRole === 'mentor' && currentMentorId && !currentMentor) {
+      handleLogout();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isDataLoading, activeRole, currentMentorId, currentMentor]);
 
   // Filter available mentors for quick login & selection
   const availableMentors = siswaList.filter((s) => s.status === 'Mentor');
@@ -100,7 +145,7 @@ export default function App() {
 
   // Handle Mentor Login Success
   const handleMentorLoginSuccess = (mentor: Siswa) => {
-    setCurrentMentor(mentor);
+    setCurrentMentorId(mentor.id);
     setActiveRole('mentor');
     StorageService.saveSession({ role: 'mentor', mentorId: mentor.id });
     // URL jadi #mentor/<kamar> supaya jelas ini dashboard mentor kamar berapa, bukan cuma root.
@@ -108,79 +153,73 @@ export default function App() {
   };
 
   // Handle Logout - ini satu-satunya cara sesi berakhir
-  const handleLogout = () => {
+  function handleLogout() {
     setActiveRole('none');
-    setCurrentMentor(null);
+    setCurrentMentorId(null);
     setAdminEmail(null);
     StorageService.clearSession();
     clearRoute();
     setRoute('none');
-  };
+  }
 
-  // Data mutation handlers
+  // Data mutation handlers - tidak perlu refresh manual lagi, listener real-time otomatis update UI
   const handleAddSiswa = (newSiswa: Omit<Siswa, 'id' | 'createdAt' | 'updatedAt'>) => {
-    StorageService.addSiswa(newSiswa);
-    refreshData();
+    StorageService.addSiswa(newSiswa).catch((err) => console.error('addSiswa failed:', err));
   };
 
   const handleUpdateSiswa = (updatedSiswa: Siswa) => {
-    StorageService.updateSiswa(updatedSiswa);
-    refreshData();
-    if (currentMentor && currentMentor.id === updatedSiswa.id) {
-      setCurrentMentor(updatedSiswa);
-    }
+    StorageService.updateSiswa(updatedSiswa).catch((err) => console.error('updateSiswa failed:', err));
   };
 
   const handleDeleteSiswa = (id: string) => {
-    StorageService.deleteSiswa(id);
-    refreshData();
-    if (currentMentor && currentMentor.id === id) {
-      handleLogout();
-    }
+    StorageService.deleteSiswa(id).catch((err) => console.error('deleteSiswa failed:', err));
   };
 
   const handleUpdateIndikator = (updatedInd: Indikator) => {
-    StorageService.updateIndikator(updatedInd);
-    refreshData();
+    StorageService.updateIndikator(updatedInd).catch((err) => console.error('updateIndikator failed:', err));
   };
 
   const handleAddIndikator = (data: { nama: string; deskripsi: string }) => {
-    StorageService.addIndikator(data);
-    refreshData();
+    StorageService.addIndikator(data).catch((err) => console.error('addIndikator failed:', err));
   };
 
   const handleDeleteIndikator = (id: string) => {
-    StorageService.deleteIndikator(id);
-    refreshData();
+    StorageService.deleteIndikator(id).catch((err) => console.error('deleteIndikator failed:', err));
   };
 
   const handleResetIndikator = () => {
-    StorageService.resetIndikator();
-    refreshData();
+    StorageService.resetIndikator().catch((err) => console.error('resetIndikator failed:', err));
   };
 
   const handleSavePenilaian = (data: Omit<Penilaian, 'updatedAt' | 'lengkap' | 'id'>) => {
-    StorageService.savePenilaian(data);
-    refreshData();
+    StorageService.savePenilaian(data).catch((err) => console.error('savePenilaian failed:', err));
   };
 
   const handleToggleOpenMonth = (bulan: AssessmentMonth) => {
-    StorageService.toggleOpenMonth(bulan);
-    refreshData();
+    StorageService.toggleOpenMonth(bulan).catch((err) => console.error('toggleOpenMonth failed:', err));
   };
 
-  const handleResetData = () => {
-    refreshData();
-    if (activeRole === 'mentor') {
-      const freshList = StorageService.getSiswa();
-      const stillThere = freshList.find((s) => s.id === currentMentor?.id);
-      if (stillThere) {
-        setCurrentMentor(stillThere);
-      } else {
-        handleLogout();
-      }
-    }
-  };
+  // Tampilkan pesan kalau Firestore gagal dihubungi (biasanya konfigurasi belum diisi)
+  if (firestoreError) {
+    return (
+      <div className="min-h-screen bg-navy-950 text-white flex items-center justify-center p-6">
+        <div className="max-w-md text-center space-y-3">
+          <h1 className="text-lg font-bold">Tidak Bisa Terhubung ke Database</h1>
+          <p className="text-sm text-ice-100">{firestoreError}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Tunggu data awal termuat sebelum render dashboard (Firestore bersifat async, beda dari
+  // localStorage yang instan) - cukup untuk sesi yang sedang dipulihkan (admin/mentor).
+  if (isDataLoading && activeRole !== 'none') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-sm text-slate-500">Memuat data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans antialiased">
@@ -192,7 +231,6 @@ export default function App() {
             currentMentor={currentMentor}
             adminEmail={adminEmail}
             onLogout={handleLogout}
-            onResetData={handleResetData}
           />
           <main className="flex-1 pb-16">
             <AdminDashboard
@@ -222,7 +260,6 @@ export default function App() {
             currentMentor={currentMentor}
             adminEmail={adminEmail}
             onLogout={handleLogout}
-            onResetData={handleResetData}
           />
           <main className="flex-1 pb-16">
             <MentorDashboard

@@ -75,7 +75,7 @@ export const SemuaPenilaianTab: React.FC<SemuaPenilaianTabProps> = ({
                   onClick={() => setSelectedBulan(m)}
                   className={`px-4 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
                     selectedBulan === m
-                      ? 'bg-maroon-700 text-white'
+                      ? 'bg-navy-700 text-white'
                       : 'bg-white text-slate-600 hover:bg-slate-50'
                   }`}
                 >
@@ -114,15 +114,15 @@ export const SemuaPenilaianTab: React.FC<SemuaPenilaianTabProps> = ({
           <div className="text-2xl font-bold text-amber-700 mt-1">{summary.belum}</div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-          <div className="text-xs font-semibold text-maroon-600 uppercase tracking-wider">Rata-rata Nilai</div>
-          <div className="text-2xl font-bold text-maroon-700 mt-1">{summary.globalAvg}</div>
+          <div className="text-xs font-semibold text-navy-600 uppercase tracking-wider">Rata-rata Nilai</div>
+          <div className="text-2xl font-bold text-navy-700 mt-1">{summary.globalAvg}</div>
         </div>
       </div>
 
       {/* Excel Mode Indicator & Info */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <FileSpreadsheet className="w-5 h-5 text-gold-600" />
+          <FileSpreadsheet className="w-5 h-5 text-sky-600" />
           <h3 className="text-sm font-bold text-slate-800">
             Lembar Kerja Excel Penilaian Seluruh Kelompok
           </h3>

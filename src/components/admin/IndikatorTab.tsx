@@ -203,7 +203,7 @@ export const IndikatorTab: React.FC<IndikatorTabProps> = ({
             >
               {/* Indicator Header & Name */}
               <div className="flex items-center gap-3">
-                <span className="w-8 h-8 rounded-xl bg-maroon-600 text-white font-bold text-sm flex items-center justify-center shrink-0">
+                <span className="w-8 h-8 rounded-xl bg-navy-600 text-white font-bold text-sm flex items-center justify-center shrink-0">
                   {ind.urutan}
                 </span>
                 <div className="flex-1">
@@ -220,7 +220,7 @@ export const IndikatorTab: React.FC<IndikatorTabProps> = ({
                     onChange={(e) => handleChange(ind.id, 'nama', e.target.value)}
                     placeholder={`Nama Indikator ${ind.urutan}`}
                     required
-                    className="w-full px-3.5 py-2 text-sm font-bold text-slate-900 bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-maroon-500 outline-hidden transition-colors"
+                    className="w-full px-3.5 py-2 text-sm font-bold text-slate-900 bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-500 outline-hidden transition-colors"
                   />
                 </div>
                 <button
@@ -248,7 +248,7 @@ export const IndikatorTab: React.FC<IndikatorTabProps> = ({
                   onChange={(e) => handleChange(ind.id, 'deskripsi', e.target.value)}
                   placeholder="Jelaskan aspek yang dinilai pada indikator ini..."
                   required
-                  className="w-full px-3.5 py-2 text-xs sm:text-sm text-slate-700 bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-maroon-500 outline-hidden transition-colors resize-y"
+                  className="w-full px-3.5 py-2 text-xs sm:text-sm text-slate-700 bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-500 outline-hidden transition-colors resize-y"
                 />
               </div>
 
@@ -258,9 +258,9 @@ export const IndikatorTab: React.FC<IndikatorTabProps> = ({
                   <button
                     type="button"
                     onClick={() => toggleExpand(ind.id)}
-                    className="flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-maroon-600 cursor-pointer"
+                    className="flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-navy-600 cursor-pointer"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-maroon-600" />
+                    <Sparkles className="w-3.5 h-3.5 text-navy-600" />
                     <span>Pilihan Dropdown Excel ({(ind.opsiNilai || []).length} Opsi)</span>
                     {isExpanded ? (
                       <ChevronUp className="w-3.5 h-3.5" />
@@ -288,7 +288,7 @@ export const IndikatorTab: React.FC<IndikatorTabProps> = ({
                             onChange={(e) =>
                               handleUpdateOption(ind.id, opt.id, 'label', e.target.value)
                             }
-                            className="flex-1 text-xs text-slate-800 bg-transparent border-b border-transparent focus:border-maroon-500 outline-hidden px-1 py-0.5"
+                            className="flex-1 text-xs text-slate-800 bg-transparent border-b border-transparent focus:border-navy-500 outline-hidden px-1 py-0.5"
                             placeholder="Deskripsi Pilihan..."
                           />
                           <div className="flex items-center gap-1 shrink-0">
@@ -331,7 +331,7 @@ export const IndikatorTab: React.FC<IndikatorTabProps> = ({
                           }))
                         }
                         placeholder="Tambah teks pilihan baru (contoh: Sangat Aktif)..."
-                        className="flex-1 text-xs bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 outline-hidden focus:ring-1 focus:ring-maroon-500"
+                        className="flex-1 text-xs bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 outline-hidden focus:ring-1 focus:ring-navy-500"
                       />
                       <div className="flex items-center gap-1 shrink-0">
                         <span className="text-[11px] text-slate-500">Skor:</span>
@@ -355,7 +355,7 @@ export const IndikatorTab: React.FC<IndikatorTabProps> = ({
                       <button
                         type="button"
                         onClick={() => handleAddOption(ind.id)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-maroon-600 hover:bg-maroon-700 text-white rounded-lg text-xs font-semibold shrink-0 cursor-pointer transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-navy-600 hover:bg-navy-700 text-white rounded-lg text-xs font-semibold shrink-0 cursor-pointer transition-colors"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Tambah</span>
@@ -371,7 +371,7 @@ export const IndikatorTab: React.FC<IndikatorTabProps> = ({
         {/* Tambah Indikator Baru */}
         <div className="bg-white rounded-2xl border-2 border-dashed border-slate-300 p-5 space-y-3">
           <h4 className="text-sm font-bold text-slate-700 flex items-center gap-2">
-            <Plus className="w-4 h-4 text-maroon-600" />
+            <Plus className="w-4 h-4 text-navy-600" />
             <span>Tambah Indikator Baru</span>
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -380,14 +380,14 @@ export const IndikatorTab: React.FC<IndikatorTabProps> = ({
               value={newIndikator.nama}
               onChange={(e) => setNewIndikator((prev) => ({ ...prev, nama: e.target.value }))}
               placeholder="Nama indikator baru (contoh: Kebersihan)"
-              className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-maroon-500 outline-hidden transition-colors"
+              className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-500 outline-hidden transition-colors"
             />
             <input
               type="text"
               value={newIndikator.deskripsi}
               onChange={(e) => setNewIndikator((prev) => ({ ...prev, deskripsi: e.target.value }))}
               placeholder="Deskripsi & panduan penilaian..."
-              className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-maroon-500 outline-hidden transition-colors"
+              className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-navy-500 outline-hidden transition-colors"
             />
           </div>
           <div className="flex justify-end">
@@ -395,7 +395,7 @@ export const IndikatorTab: React.FC<IndikatorTabProps> = ({
               type="button"
               onClick={handleAddIndikator}
               disabled={!newIndikator.nama.trim() || !newIndikator.deskripsi.trim()}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-maroon-600 hover:bg-maroon-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-navy-600 hover:bg-navy-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Tambah Indikator</span>
@@ -408,7 +408,7 @@ export const IndikatorTab: React.FC<IndikatorTabProps> = ({
           <button
             id="btn-save-indicators"
             type="submit"
-            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-maroon-600 hover:bg-maroon-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-navy-600 hover:bg-navy-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>Simpan Perubahan Indikator & Dropdown</span>

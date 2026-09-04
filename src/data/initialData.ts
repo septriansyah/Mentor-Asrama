@@ -1,9 +1,10 @@
 import { Siswa, Indikator, Penilaian, SiswaStatus } from '../types';
 
-// Naikkan angka ini SETIAP KALI daftar siswa di bawah berubah (nambah gedung/kelompok baru, dst).
-// StorageService akan otomatis menulis ulang data browser ke roster terbaru saat versi ini naik,
-// tanpa perlu klik tombol reset manual. Edit siswa lewat halaman admin TIDAK menaikkan angka ini,
-// jadi perubahan lewat aplikasi tetap aman sampai roster dasarnya sendiri di-update lagi di sini.
+// Dipakai HANYA untuk seed awal Firestore sekali saat koleksi `siswa` masih kosong sama sekali.
+// Setelah database terisi, daftar ini TIDAK lagi menimpa data - perubahan lewat aplikasi (tambah/
+// edit/hapus siswa oleh admin) adalah satu-satunya sumber kebenaran. Roster baru di bawah ini
+// (mis. gedung baru) tidak otomatis muncul di database yang sudah pernah di-seed; tambahkan manual
+// lewat halaman admin atau lewat skrip migrasi terpisah.
 export const SISWA_SEED_VERSION = 3; // v3: + Rusunawa Putra (RUSPA)
 
 // Data riil "Rekap Kelompok Mentor-Mentee" (gedung: ASPA, ASPI, RUSPI, RUSPA).

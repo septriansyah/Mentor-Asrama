@@ -51,7 +51,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Dashboard Administrator</h2>
-            <span className="text-xs bg-maroon-900 text-white font-medium px-2 py-0.5 rounded-md">
+            <span className="text-xs bg-navy-900 text-white font-medium px-2 py-0.5 rounded-md">
               Master Control
             </span>
           </div>
@@ -76,7 +76,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
                     isActive
-                      ? 'bg-maroon-600 text-white shadow-xs'
+                      ? 'bg-navy-600 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >

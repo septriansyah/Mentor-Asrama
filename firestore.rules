@@ -1,31 +1,27 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
+    // CATATAN KEAMANAN: Login admin & mentor di aplikasi ini masih pengecekan sisi klien saja
+    // (BUKAN Firebase Authentication), jadi request.auth di sini akan SELALU null. Aturan di bawah
+    // sengaja dibuka (read/write: if true) supaya aplikasi tetap berfungsi - artinya siapa pun yang
+    // tahu konfigurasi Firebase (yang memang publik ada di bundle client) bisa baca/tulis data ini.
+    // Untuk keamanan sungguhan, pasang Firebase Authentication lalu ganti "if true" di bawah
+    // menjadi "if request.auth != null" (atau custom claim admin).
 
-    function isAdmin() {
-      return isSignedIn();
-    }
-
-    // Collection: Siswa
     match /siswa/{siswaId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
-    // Collection: Indikator
     match /indikator/{indikatorId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
-    // Collection: Penilaian
-    match /penilaian/{siswaId} {
-      allow read: if true;
-      allow write: if true; // Sesuai DESIGN.md Opsi A untuk MVP (atau request.auth != null untuk admin)
+    match /penilaian/{penilaianId} {
+      allow read, write: if true;
+    }
+
+    match /settings/{settingId} {
+      allow read, write: if true;
     }
   }
 }

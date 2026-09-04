@@ -1,17 +1,24 @@
-import { Siswa, Indikator, Penilaian, isPenilaianLengkap, AssessmentMonth, penilaianId } from '../types';
-import { INITIAL_SISWA, INITIAL_INDIKATOR, INITIAL_PENILAIAN, SISWA_SEED_VERSION } from '../data/initialData';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  where,
+  writeBatch,
+} from 'firebase/firestore';
+import { db } from './firebase';
+import { Siswa, Indikator, Penilaian, isPenilaianLengkap, AssessmentMonth } from '../types';
+import { INITIAL_SISWA, INITIAL_INDIKATOR } from '../data/initialData';
 
-// v3 pada PENILAIAN: skema Penilaian sekarang wajib punya field `bulan` (penilaian per bulan
-// September-Desember). Key dinaikkan supaya data lama tanpa `bulan` tidak "hilang" secara diam-diam
-// dari tampilan (tidak akan cocok dengan tab bulan manapun) - browser lama mulai bersih.
-const STORAGE_KEYS = {
-  SISWA: 'sistem_penilaian_siswa_v2',
-  SISWA_SEED_VERSION: 'sistem_penilaian_siswa_seed_version',
-  INDIKATOR: 'sistem_penilaian_indikator_v1',
-  PENILAIAN: 'sistem_penilaian_nilai_v3',
-  OPEN_MONTHS: 'sistem_penilaian_bulan_terbuka_v1',
-  SESSION: 'sistem_penilaian_session_v1',
-};
+// Kunci localStorage HANYA untuk sesi login (per-device, memang tidak perlu dibagi antar device).
+// Semua data lain (siswa, indikator, penilaian, bulan terbuka) sekarang tersimpan di Firestore
+// supaya benar-benar dibagi (shared) dan real-time antar semua mentor & admin, di device manapun.
+const SESSION_KEY = 'sistem_penilaian_session_v1';
 
 export interface AuthSession {
   role: 'admin' | 'mentor';
@@ -19,221 +26,188 @@ export interface AuthSession {
   mentorId?: string;
 }
 
-export const StorageService = {
-  getSiswa(): Siswa[] {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.SISWA);
-      const storedVersion = Number(localStorage.getItem(STORAGE_KEYS.SISWA_SEED_VERSION) || '0');
+const siswaCol = collection(db, 'siswa');
+const indikatorCol = collection(db, 'indikator');
+const penilaianCol = collection(db, 'penilaian');
+const settingsCol = collection(db, 'settings');
+const openMonthsRef = doc(settingsCol, 'openMonths');
 
-      // Roster dasar (initialData.ts) berubah sejak terakhir disimpan di browser ini - seed ulang
-      // supaya siswa/gedung baru otomatis muncul tanpa perlu klik reset manual. Nilai yang sudah
-      // diisi mentor tetap aman karena Penilaian tersimpan terpisah dan id siswa lama tidak berubah.
-      if (!stored || storedVersion < SISWA_SEED_VERSION) {
-        localStorage.setItem(STORAGE_KEYS.SISWA, JSON.stringify(INITIAL_SISWA));
-        localStorage.setItem(STORAGE_KEYS.SISWA_SEED_VERSION, String(SISWA_SEED_VERSION));
-        return INITIAL_SISWA;
-      }
-      return JSON.parse(stored);
-    } catch {
-      return INITIAL_SISWA;
+// Firestore batch write dibatasi 500 operasi - kirim per potongan supaya aman untuk data besar.
+async function batchWriteAll(docs: { ref: ReturnType<typeof doc>; data: any }[]) {
+  const chunkSize = 450;
+  for (let i = 0; i < docs.length; i += chunkSize) {
+    const batch = writeBatch(db);
+    docs.slice(i, i + chunkSize).forEach(({ ref, data }) => batch.set(ref, data));
+    await batch.commit();
+  }
+}
+
+export const StorageService = {
+  // Seed Firestore SEKALI SAJA saat koleksi masih benar-benar kosong (database baru). Setelah itu
+  // tidak pernah menimpa data lagi - CRUD lewat aplikasi jadi satu-satunya sumber kebenaran.
+  async ensureSeeded(): Promise<void> {
+    const siswaSnap = await getDocs(siswaCol);
+    if (siswaSnap.empty) {
+      await batchWriteAll(
+        INITIAL_SISWA.map((s) => ({ ref: doc(siswaCol, s.id), data: s }))
+      );
+    }
+
+    const indikatorSnap = await getDocs(indikatorCol);
+    if (indikatorSnap.empty) {
+      await batchWriteAll(
+        INITIAL_INDIKATOR.map((i) => ({ ref: doc(indikatorCol, i.id), data: i }))
+      );
     }
   },
 
-  saveSiswa(siswaList: Siswa[]): void {
-    localStorage.setItem(STORAGE_KEYS.SISWA, JSON.stringify(siswaList));
+  // --- Siswa (real-time) ---
+  subscribeSiswa(callback: (list: Siswa[]) => void, onError?: (err: Error) => void): () => void {
+    return onSnapshot(
+      siswaCol,
+      (snap) => callback(snap.docs.map((d) => d.data() as Siswa)),
+      onError
+    );
   },
 
-  addSiswa(newSiswa: Omit<Siswa, 'id' | 'createdAt' | 'updatedAt'>): Siswa {
-    const list = this.getSiswa();
+  async addSiswa(newSiswa: Omit<Siswa, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> {
     const id = `siswa-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const timestamp = new Date().toISOString();
-    const created: Siswa = {
-      ...newSiswa,
-      id,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
-    list.push(created);
-    this.saveSiswa(list);
-    return created;
+    const created: Siswa = { ...newSiswa, id, createdAt: timestamp, updatedAt: timestamp };
+    await setDoc(doc(siswaCol, id), created);
   },
 
-  updateSiswa(updated: Siswa): void {
-    const list = this.getSiswa();
-    const index = list.findIndex((s) => s.id === updated.id);
-    if (index !== -1) {
-      list[index] = {
-        ...updated,
-        updatedAt: new Date().toISOString(),
-      };
-      this.saveSiswa(list);
+  async updateSiswa(updated: Siswa): Promise<void> {
+    const record = { ...updated, updatedAt: new Date().toISOString() };
+    await setDoc(doc(siswaCol, updated.id), record);
 
-      // If room changed, sync it across ALL of this mentee's monthly assessment records
-      const penilaianList = this.getPenilaian();
-      let touched = false;
-      penilaianList.forEach((p) => {
-        if (p.siswaId === updated.id) {
-          p.kamar = updated.kamar;
-          touched = true;
-        }
-      });
-      if (touched) {
-        this.savePenilaianList(penilaianList);
-      }
+    // Kalau nomor kamar berubah, sinkronkan ke SEMUA record penilaian bulanan siswa ini.
+    const q = query(penilaianCol, where('siswaId', '==', updated.id));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      const batch = writeBatch(db);
+      snap.docs.forEach((d) => batch.update(d.ref, { kamar: updated.kamar }));
+      await batch.commit();
     }
   },
 
-  deleteSiswa(id: string): void {
-    const list = this.getSiswa().filter((s) => s.id !== id);
-    this.saveSiswa(list);
+  async deleteSiswa(id: string): Promise<void> {
+    await deleteDoc(doc(siswaCol, id));
 
-    // Also remove assessment if any
-    const penilaianList = this.getPenilaian().filter((p) => p.siswaId !== id);
-    this.savePenilaianList(penilaianList);
-  },
-
-  getIndikator(): Indikator[] {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.INDIKATOR);
-      if (!stored) {
-        localStorage.setItem(STORAGE_KEYS.INDIKATOR, JSON.stringify(INITIAL_INDIKATOR));
-        return INITIAL_INDIKATOR;
-      }
-      const parsed: Indikator[] = JSON.parse(stored);
-      // Jumlah indikator boleh berapa saja (admin bisa menambah/menghapus) - hanya jaga agar
-      // tidak kosong total.
-      if (!Array.isArray(parsed) || parsed.length === 0) {
-        localStorage.setItem(STORAGE_KEYS.INDIKATOR, JSON.stringify(INITIAL_INDIKATOR));
-        return INITIAL_INDIKATOR;
-      }
-      // Merge with default opsiNilai if missing
-      const merged = parsed.map((item) => {
-        if (!item.opsiNilai || item.opsiNilai.length === 0) {
-          const defaultInd = INITIAL_INDIKATOR.find((d) => d.id === item.id);
-          return { ...item, opsiNilai: defaultInd?.opsiNilai || [] };
-        }
-        return item;
-      });
-      return merged.sort((a, b) => a.urutan - b.urutan);
-    } catch {
-      return INITIAL_INDIKATOR;
+    const q = query(penilaianCol, where('siswaId', '==', id));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      const batch = writeBatch(db);
+      snap.docs.forEach((d) => batch.delete(d.ref));
+      await batch.commit();
     }
   },
 
-  updateIndikator(updated: Indikator): void {
-    const list = this.getIndikator();
-    const index = list.findIndex((i) => i.id === updated.id);
-    if (index !== -1) {
-      list[index] = {
-        ...updated,
-        updatedAt: new Date().toISOString(),
-      };
-      localStorage.setItem(STORAGE_KEYS.INDIKATOR, JSON.stringify(list));
-    }
+  // --- Indikator (real-time) ---
+  subscribeIndikator(callback: (list: Indikator[]) => void, onError?: (err: Error) => void): () => void {
+    return onSnapshot(
+      indikatorCol,
+      (snap) => {
+        const list = snap.docs.map((d) => d.data() as Indikator);
+        callback(list.sort((a, b) => a.urutan - b.urutan));
+      },
+      onError
+    );
   },
 
-  addIndikator(data: { nama: string; deskripsi: string }): Indikator {
-    const list = this.getIndikator();
+  async updateIndikator(updated: Indikator): Promise<void> {
+    await updateDoc(doc(indikatorCol, updated.id), {
+      ...updated,
+      updatedAt: new Date().toISOString(),
+    } as any);
+  },
+
+  async addIndikator(data: { nama: string; deskripsi: string }): Promise<void> {
+    const snap = await getDocs(indikatorCol);
+    const list = snap.docs.map((d) => d.data() as Indikator);
     const nextUrutan = list.length > 0 ? Math.max(...list.map((i) => i.urutan)) + 1 : 1;
+    const id = `ind-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const created: Indikator = {
-      id: `ind-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      id,
       urutan: nextUrutan,
       nama: data.nama,
       deskripsi: data.deskripsi,
       opsiNilai: [],
       updatedAt: new Date().toISOString(),
     };
-    const updated = [...list, created];
-    localStorage.setItem(STORAGE_KEYS.INDIKATOR, JSON.stringify(updated));
-    return created;
+    await setDoc(doc(indikatorCol, id), created);
   },
 
-  deleteIndikator(id: string): void {
-    const list = this.getIndikator().filter((i) => i.id !== id);
-    localStorage.setItem(STORAGE_KEYS.INDIKATOR, JSON.stringify(list));
+  async deleteIndikator(id: string): Promise<void> {
+    await deleteDoc(doc(indikatorCol, id));
   },
 
-  resetIndikator(): void {
-    localStorage.setItem(STORAGE_KEYS.INDIKATOR, JSON.stringify(INITIAL_INDIKATOR));
+  async resetIndikator(): Promise<void> {
+    const snap = await getDocs(indikatorCol);
+    const batch = writeBatch(db);
+    snap.docs.forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+    await batchWriteAll(
+      INITIAL_INDIKATOR.map((i) => ({ ref: doc(indikatorCol, i.id), data: i }))
+    );
   },
 
-  getPenilaian(): Penilaian[] {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.PENILAIAN);
-      if (!stored) {
-        localStorage.setItem(STORAGE_KEYS.PENILAIAN, JSON.stringify(INITIAL_PENILAIAN));
-        return INITIAL_PENILAIAN;
-      }
-      return JSON.parse(stored);
-    } catch {
-      return INITIAL_PENILAIAN;
-    }
+  // --- Penilaian (real-time) ---
+  subscribePenilaian(callback: (list: Penilaian[]) => void, onError?: (err: Error) => void): () => void {
+    return onSnapshot(
+      penilaianCol,
+      (snap) => callback(snap.docs.map((d) => d.data() as Penilaian)),
+      onError
+    );
   },
 
-  savePenilaianList(list: Penilaian[]): void {
-    localStorage.setItem(STORAGE_KEYS.PENILAIAN, JSON.stringify(list));
-  },
-
-  savePenilaian(penilaianData: Omit<Penilaian, 'updatedAt' | 'lengkap' | 'id'>): Penilaian {
-    const list = this.getPenilaian();
-    const isComplete = isPenilaianLengkap(penilaianData.nilai, this.getIndikator());
+  async savePenilaian(
+    penilaianData: Omit<Penilaian, 'updatedAt' | 'lengkap' | 'id'>
+  ): Promise<void> {
+    const indikatorSnap = await getDocs(indikatorCol);
+    const indikatorList = indikatorSnap.docs.map((d) => d.data() as Indikator);
+    const isComplete = isPenilaianLengkap(penilaianData.nilai, indikatorList);
+    const id = `${penilaianData.siswaId}__${penilaianData.bulan}`;
 
     const record: Penilaian = {
       ...penilaianData,
-      id: penilaianId(penilaianData.siswaId, penilaianData.bulan),
+      id,
       lengkap: isComplete,
       updatedAt: new Date().toISOString(),
     };
-
-    // Satu mentee bisa punya beberapa record (satu per bulan) - cocokkan siswaId DAN bulan.
-    const index = list.findIndex((p) => p.siswaId === record.siswaId && p.bulan === record.bulan);
-    if (index !== -1) {
-      list[index] = record;
-    } else {
-      list.push(record);
-    }
-
-    this.savePenilaianList(list);
-    return record;
+    await setDoc(doc(penilaianCol, id), record);
   },
 
-  resetData(): void {
-    localStorage.setItem(STORAGE_KEYS.SISWA, JSON.stringify(INITIAL_SISWA));
-    localStorage.setItem(STORAGE_KEYS.SISWA_SEED_VERSION, String(SISWA_SEED_VERSION));
-    localStorage.setItem(STORAGE_KEYS.INDIKATOR, JSON.stringify(INITIAL_INDIKATOR));
-    localStorage.setItem(STORAGE_KEYS.PENILAIAN, JSON.stringify(INITIAL_PENILAIAN));
+  // --- Bulan penilaian yang dibuka admin (real-time) ---
+  subscribeOpenMonths(
+    callback: (months: AssessmentMonth[]) => void,
+    onError?: (err: Error) => void
+  ): () => void {
+    return onSnapshot(
+      openMonthsRef,
+      (snap) => {
+        const data = snap.data();
+        callback(Array.isArray(data?.months) ? data.months : []);
+      },
+      onError
+    );
   },
 
-  // Bulan mana yang boleh diisi mentor - default TERTUTUP SEMUA sampai admin membuka secara
-  // eksplisit dari dashboard admin.
-  getOpenMonths(): AssessmentMonth[] {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.OPEN_MONTHS);
-      if (!stored) return [];
-      const parsed = JSON.parse(stored);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  },
-
-  setOpenMonths(months: AssessmentMonth[]): void {
-    localStorage.setItem(STORAGE_KEYS.OPEN_MONTHS, JSON.stringify(months));
-  },
-
-  toggleOpenMonth(bulan: AssessmentMonth): void {
-    const current = this.getOpenMonths();
+  async toggleOpenMonth(bulan: AssessmentMonth): Promise<void> {
+    const snap = await getDoc(openMonthsRef);
+    const current: AssessmentMonth[] = snap.exists() && Array.isArray(snap.data()?.months)
+      ? snap.data()!.months
+      : [];
     const next = current.includes(bulan)
       ? current.filter((m) => m !== bulan)
       : [...current, bulan];
-    this.setOpenMonths(next);
+    await setDoc(openMonthsRef, { months: next });
   },
 
-  // Sesi login (admin/mentor) - disimpan supaya refresh halaman TIDAK otomatis logout.
-  // Hanya logout eksplisit (tombol Keluar) yang menghapus sesi ini.
+  // --- Sesi login: TETAP di localStorage - memang khusus per-device, bukan data yang dibagi ---
   getSession(): AuthSession | null {
     try {
-      const stored = localStorage.getItem(STORAGE_KEYS.SESSION);
+      const stored = localStorage.getItem(SESSION_KEY);
       return stored ? JSON.parse(stored) : null;
     } catch {
       return null;
@@ -241,20 +215,23 @@ export const StorageService = {
   },
 
   saveSession(session: AuthSession): void {
-    localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   },
 
   clearSession(): void {
-    localStorage.removeItem(STORAGE_KEYS.SESSION);
+    localStorage.removeItem(SESSION_KEY);
   },
 
-  generateCSVData(bulan: AssessmentMonth): { headers: string[]; rows: (string | number)[][] } {
-    const siswaList = this.getSiswa();
-    const indikatorList = this.getIndikator();
-    const penilaianList = this.getPenilaian().filter((p) => p.bulan === bulan);
+  // --- Export CSV: bekerja dari data yang SUDAH dimuat di komponen (bukan fetch ulang), supaya
+  // ekspor otomatis terbatas sesuai scope pemanggilnya (mentor cuma kelompoknya, admin semua). ---
+  generateCSVData(
+    siswaList: Siswa[],
+    indikatorList: Indikator[],
+    penilaianList: Penilaian[],
+    bulan: AssessmentMonth
+  ): { headers: string[]; rows: (string | number)[][] } {
+    const bulanPenilaian = penilaianList.filter((p) => p.bulan === bulan);
 
-    // Headers: No, Gedung, Lantai, Kelompok, Status, Angkatan, Nama, Kamar, Prioritas Sekamar,
-    // Bulan, <nama tiap indikator - jumlahnya dinamis>, Diisi Oleh, Status Kelengkapan
     const headers = [
       'No',
       'Gedung',
@@ -271,10 +248,9 @@ export const StorageService = {
       'Status Kelengkapan',
     ];
 
-    // Siswa (terutama Mentee, tapi mencakup data siswa lengkap yang dinilai)
     const mentees = siswaList.filter((s) => s.status === 'Mentee');
     const rows = mentees.map((mentee, index) => {
-      const p = penilaianList.find((item) => item.siswaId === mentee.id);
+      const p = bulanPenilaian.find((item) => item.siswaId === mentee.id);
       const indikatorVals = indikatorList.map((ind) => {
         const v = p?.nilai?.[String(ind.urutan)];
         return v !== undefined ? v : '-';
@@ -302,11 +278,15 @@ export const StorageService = {
     return { headers, rows };
   },
 
-  exportToCSV(bulan: AssessmentMonth): void {
-    const { headers, rows } = this.generateCSVData(bulan);
+  exportToCSV(
+    siswaList: Siswa[],
+    indikatorList: Indikator[],
+    penilaianList: Penilaian[],
+    bulan: AssessmentMonth
+  ): void {
+    const { headers, rows } = this.generateCSVData(siswaList, indikatorList, penilaianList, bulan);
     const csvRows: string[] = [];
 
-    // Format safely with quotes escaping
     const escapeCSV = (val: string | number) => {
       const str = String(val ?? '');
       if (str.includes(',') || str.includes('"') || str.includes('\n')) {
@@ -320,7 +300,7 @@ export const StorageService = {
       csvRows.push(row.map(escapeCSV).join(','));
     });
 
-    const csvContent = '\uFEFF' + csvRows.join('\r\n');
+    const csvContent = '﻿' + csvRows.join('\r\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

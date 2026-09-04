@@ -10,11 +10,19 @@ View your app in AI Studio: https://ai.studio/apps/a3de76d8-0112-4851-bb33-a6770
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:**  Node.js, a Firebase project with Firestore enabled
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Buat file `.env.local` (salin dari `.env.example`) dan isi `VITE_FIREBASE_*` dengan config
+   dari Firebase Console > Project Settings > General > Your apps. Data siswa/nilai aplikasi ini
+   disimpan di Firestore (real-time, dibagi semua device) - tanpa ini aplikasi tidak akan jalan.
+3. Deploy `firestore.rules` yang ada di root repo ini ke project Firebase kamu (lewat Firebase
+   Console > Firestore Database > Rules, atau `firebase deploy --only firestore:rules` kalau
+   sudah pakai Firebase CLI).
+4. Run the app:
    `npm run dev`
+
+Saat pertama kali dijalankan dengan Firestore yang masih kosong, aplikasi otomatis mengisi data
+awal (siswa & indikator) sekali saja - setelah itu perubahan lewat aplikasi (tambah/edit/hapus)
+adalah satu-satunya sumber data.

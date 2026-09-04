@@ -213,29 +213,29 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
   return (
     <div className="bg-white rounded-2xl border border-slate-300 shadow-md overflow-hidden flex flex-col font-sans">
       {/* Excel Title Bar & Formula Toolbar */}
-      <div className="bg-gold-600 text-white px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-sky-600 text-white px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <FileSpreadsheet className="w-5 h-5 text-cream-100" />
+          <FileSpreadsheet className="w-5 h-5 text-ice-100" />
           <span className="font-bold text-sm tracking-wide">Excel Lembar Penilaian Mentee</span>
-          <span className="text-[11px] bg-black/20 text-cream-50 px-2 py-0.5 rounded-md font-mono">
+          <span className="text-[11px] bg-black/20 text-ice-50 px-2 py-0.5 rounded-md font-mono">
             {roomLock ? roomLockLabel || roomLock : 'Semua Kelompok'}
           </span>
-          <span className="text-[11px] bg-black/20 text-gold-100 px-2 py-0.5 rounded-md font-mono">
+          <span className="text-[11px] bg-black/20 text-sky-100 px-2 py-0.5 rounded-md font-mono">
             Bulan {bulan}
           </span>
         </div>
 
         <div className="flex items-center gap-2 text-xs">
           {savedNotice && (
-            <span className="inline-flex items-center gap-1 text-gold-100 text-xs bg-black/25 px-2.5 py-1 rounded-md animate-in fade-in">
+            <span className="inline-flex items-center gap-1 text-sky-100 text-xs bg-black/25 px-2.5 py-1 rounded-md animate-in fade-in">
               <Check className="w-3.5 h-3.5" />
               {savedNotice}
             </span>
           )}
           <button
             type="button"
-            onClick={() => StorageService.exportToCSV(bulan)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-gold-700 hover:bg-gold-50 rounded-lg font-semibold text-xs shadow-xs transition-colors cursor-pointer"
+            onClick={() => StorageService.exportToCSV(mentees, indikatorList, penilaianList, bulan)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-sky-700 hover:bg-sky-50 rounded-lg font-semibold text-xs shadow-xs transition-colors cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Ekspor CSV</span>
@@ -291,7 +291,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari siswa..."
-              className="bg-white border border-slate-300 rounded pl-7 pr-2.5 py-1 text-xs text-slate-700 focus:ring-1 focus:ring-gold-600 outline-hidden w-36 sm:w-44"
+              className="bg-white border border-slate-300 rounded pl-7 pr-2.5 py-1 text-xs text-slate-700 focus:ring-1 focus:ring-sky-600 outline-hidden w-36 sm:w-44"
             />
           </div>
         </div>
@@ -313,7 +313,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
               {indikatorList.map((ind, i) => (
                 <th
                   key={ind.id}
-                  className="w-24 border-r border-slate-300 py-1 font-mono text-gold-600"
+                  className="w-24 border-r border-slate-300 py-1 font-mono text-sky-600"
                 >
                   {indicatorCols[i]}
                 </th>
@@ -368,7 +368,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
                     : '-';
 
                 return (
-                  <tr key={mentee.id} className="hover:bg-maroon-50/30 transition-colors">
+                  <tr key={mentee.id} className="hover:bg-navy-50/30 transition-colors">
                     {/* Excel Row Number Index */}
                     <td className="border-r border-slate-300 py-2 px-1 text-center bg-slate-100 text-slate-500 font-mono text-xs">
                       {rIdx + 1}
@@ -386,7 +386,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
                         <span>Kamar {mentee.kamar}</span>
                         {mentee.prioritasSekamar && (
                           <span title="Sekamar langsung dengan mentor">
-                            <Star className="w-2.5 h-2.5 text-gold-500 fill-gold-500" />
+                            <Star className="w-2.5 h-2.5 text-sky-500 fill-sky-500" />
                           </span>
                         )}
                       </div>
@@ -438,7 +438,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
                           }
                           className={`border-r border-slate-200 py-2 px-2 text-center cursor-pointer font-mono text-xs transition-all relative ${cellBg} ${scoreColor} ${
                             isCellActive
-                              ? 'ring-2 ring-gold-600 bg-gold-50/70 z-10 font-bold'
+                              ? 'ring-2 ring-sky-600 bg-sky-50/70 z-10 font-bold'
                               : 'hover:bg-slate-100'
                           }`}
                           title="Klik untuk memilih nilai dari dropdown opsi admin"
@@ -481,8 +481,8 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
       {/* Excel Sheet Tabs at Bottom */}
       <div className="bg-slate-200 border-t border-slate-300 px-3 py-1 flex items-center justify-between text-xs text-slate-600">
         <div className="flex items-center gap-1">
-          <div className="bg-white border-t-2 border-gold-600 px-3 py-1 font-semibold text-slate-800 rounded-t shadow-xs flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-gold-600" />
+          <div className="bg-white border-t-2 border-sky-600 px-3 py-1 font-semibold text-slate-800 rounded-t shadow-xs flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-sky-600" />
             <span>Sheet1 - Penilaian Kamar</span>
           </div>
         </div>
@@ -501,16 +501,16 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
             left: `${dropdownPos.left}px`,
             zIndex: 60,
           }}
-          className="w-80 bg-white rounded-xl shadow-2xl border-2 border-gold-600 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+          className="w-80 bg-white rounded-xl shadow-2xl border-2 border-sky-600 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         >
           {/* Header */}
-          <div className="bg-gold-600 text-white p-3 flex items-start justify-between gap-2">
+          <div className="bg-sky-600 text-white p-3 flex items-start justify-between gap-2">
             <div>
-              <div className="text-[11px] font-mono uppercase tracking-wider text-gold-100">
+              <div className="text-[11px] font-mono uppercase tracking-wider text-sky-100">
                 Sel {activeCell.columnLetter}{activeCell.rowIndex + 1} • Indikator #{activeIndikator.urutan}
               </div>
               <div className="font-bold text-sm text-white">{activeIndikator.nama}</div>
-              <div className="text-[11px] text-cream-100 mt-0.5 leading-snug line-clamp-2">
+              <div className="text-[11px] text-ice-100 mt-0.5 leading-snug line-clamp-2">
                 {activeIndikator.deskripsi}
               </div>
             </div>
@@ -532,7 +532,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
           {/* Dropdown Options List (Configured by Admin) */}
           <div className="p-2 space-y-1 max-h-56 overflow-y-auto">
             <div className="text-[11px] font-bold text-slate-500 px-2 py-0.5 uppercase tracking-wider flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-gold-600" />
+              <Sparkles className="w-3 h-3 text-sky-600" />
               <span>Pilihan Nilai (Standar Admin):</span>
             </div>
 
@@ -547,12 +547,12 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
                     onClick={() => handleSelectScore(opt.score)}
                     className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
                       isSelected
-                        ? 'bg-gold-100 border border-gold-300 text-maroon-900 font-bold'
+                        ? 'bg-sky-100 border border-sky-300 text-navy-900 font-bold'
                         : 'hover:bg-slate-100 text-slate-800'
                     }`}
                   >
                     <span className="leading-snug">{opt.label}</span>
-                    <span className="ml-2 font-mono font-bold bg-gold-600 text-white px-2 py-0.5 rounded text-xs shrink-0">
+                    <span className="ml-2 font-mono font-bold bg-sky-600 text-white px-2 py-0.5 rounded text-xs shrink-0">
                       {opt.score}
                     </span>
                   </button>
@@ -573,7 +573,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
               value={customValue}
               onChange={(e) => setCustomValue(e.target.value)}
               placeholder="0-100"
-              className="w-20 bg-white border border-slate-300 rounded px-2 py-1 text-xs text-center font-mono font-bold outline-hidden focus:ring-1 focus:ring-gold-600"
+              className="w-20 bg-white border border-slate-300 rounded px-2 py-1 text-xs text-center font-mono font-bold outline-hidden focus:ring-1 focus:ring-sky-600"
             />
             <button
               type="button"
@@ -583,7 +583,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
                   handleSelectScore(num);
                 }
               }}
-              className="px-2.5 py-1 bg-gold-600 hover:bg-gold-700 text-white rounded text-xs font-semibold cursor-pointer"
+              className="px-2.5 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded text-xs font-semibold cursor-pointer"
             >
               Set
             </button>

@@ -97,10 +97,10 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
         className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden my-6 border border-slate-200 animate-in fade-in zoom-in-95 duration-150"
       >
         {/* Header */}
-        <div className="px-6 py-4 bg-maroon-900 text-white flex items-center justify-between">
+        <div className="px-6 py-4 bg-navy-900 text-white flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-[11px] font-semibold uppercase tracking-wider bg-maroon-500/30 text-gold-100 px-2 py-0.5 rounded">
+              <span className="text-[11px] font-semibold uppercase tracking-wider bg-navy-500/30 text-sky-100 px-2 py-0.5 rounded">
                 Form Penilaian Mentee - Bulan {bulan}
               </span>
               <span className="text-xs text-slate-300">Kamar {mentee.kamar}</span>
@@ -135,7 +135,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
             )}
           </div>
           <div className="flex items-center gap-1.5 font-medium text-slate-700">
-            <Award className="w-4 h-4 text-maroon-600" />
+            <Award className="w-4 h-4 text-navy-600" />
             <span>Rata-rata:</span>
             <span className="font-bold text-slate-900 text-sm">{averageScore}</span>
           </div>
@@ -151,7 +151,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
           )}
 
           <div className="text-xs text-slate-500 flex items-start gap-1.5 mb-2">
-            <Info className="w-4 h-4 text-maroon-500 shrink-0 mt-0.5" />
+            <Info className="w-4 h-4 text-navy-500 shrink-0 mt-0.5" />
             <span>
               Masukkan skor angka <strong>0 s/d 100</strong> untuk masing-masing indikator. Anda dapat mengetik angka langsung atau menggeser slider.
             </span>
@@ -168,7 +168,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
               return (
                 <div
                   key={indikator.id}
-                  className="p-3.5 rounded-xl border border-slate-200 bg-white hover:border-maroon-300 transition-colors"
+                  className="p-3.5 rounded-xl border border-slate-200 bg-white hover:border-navy-300 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-3 mb-1.5">
                     <div>
@@ -193,7 +193,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
                         value={hasVal ? currentValue : ''}
                         onChange={(e) => handleScoreChange(key, e.target.value)}
                         placeholder="0-100"
-                        className={`w-18 py-1.5 px-2 text-center text-sm font-bold border rounded-lg focus:ring-2 focus:ring-maroon-500 outline-hidden transition-all ${getScoreColor(
+                        className={`w-18 py-1.5 px-2 text-center text-sm font-bold border rounded-lg focus:ring-2 focus:ring-navy-500 outline-hidden transition-all ${getScoreColor(
                           currentValue
                         )}`}
                       />
@@ -208,7 +208,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
                       max="100"
                       value={hasVal ? numVal : 50}
                       onChange={(e) => handleScoreChange(key, e.target.value)}
-                      className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-maroon-600"
+                      className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-navy-600"
                     />
                     <span className="text-[11px] font-mono text-slate-400 w-8 text-right shrink-0">
                       {hasVal ? `${numVal}` : '-'}
@@ -231,7 +231,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
             <button
               id="btn-save-assessment"
               type="submit"
-              className="py-2.5 px-5 rounded-xl bg-maroon-600 hover:bg-maroon-700 text-white text-sm font-medium transition-colors shadow-xs inline-flex items-center gap-2 cursor-pointer"
+              className="py-2.5 px-5 rounded-xl bg-navy-600 hover:bg-navy-700 text-white text-sm font-medium transition-colors shadow-xs inline-flex items-center gap-2 cursor-pointer"
             >
               <Save className="w-4 h-4" />
               <span>Simpan Penilaian</span>
