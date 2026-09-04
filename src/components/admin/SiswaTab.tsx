@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Users,
   Search,
@@ -12,7 +12,11 @@ import {
   AlertCircle,
   GraduationCap,
   Star,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
+
+const PAGE_SIZE = 10;
 import { Siswa, SiswaStatus, kelompokKey, kelompokLabel } from '../../types';
 
 interface SiswaTabProps {
@@ -34,6 +38,7 @@ export const SiswaTab: React.FC<SiswaTabProps> = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSiswa, setEditingSiswa] = useState<Siswa | null>(null);
   const [deleteCandidate, setDeleteCandidate] = useState<Siswa | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -66,6 +71,17 @@ export const SiswaTab: React.FC<SiswaTabProps> = ({
       return matchSearch && matchStatus && matchKelompok;
     });
   }, [siswaList, searchQuery, statusFilter, kelompokFilter]);
+
+  // Reset ke halaman 1 setiap kali filter/pencarian berubah agar tidak nyangkut di halaman kosong
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, kelompokFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredList.length / PAGE_SIZE));
+  const paginatedList = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredList.slice(start, start + PAGE_SIZE);
+  }, [filteredList, currentPage]);
 
   // Metrics
   const metrics = useMemo(() => {
@@ -255,9 +271,11 @@ export const SiswaTab: React.FC<SiswaTabProps> = ({
                   </td>
                 </tr>
               ) : (
-                filteredList.map((item, index) => (
+                paginatedList.map((item, index) => (
                   <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-3 px-4 text-center text-slate-400 font-mono">{index + 1}</td>
+                    <td className="py-3 px-4 text-center text-slate-400 font-mono">
+                      {(currentPage - 1) * PAGE_SIZE + index + 1}
+                    </td>
                     <td className="py-3 px-4 font-semibold text-slate-900">{item.nama}</td>
                     <td className="py-3 px-4">
                       {item.status === 'Mentor' ? (
@@ -316,6 +334,43 @@ export const SiswaTab: React.FC<SiswaTabProps> = ({
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Bar */}
+        {filteredList.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-slate-200 text-xs text-slate-600">
+            <span>
+              Menampilkan{' '}
+              <strong>
+                {(currentPage - 1) * PAGE_SIZE + 1}-
+                {Math.min(currentPage * PAGE_SIZE, filteredList.length)}
+              </strong>{' '}
+              dari <strong>{filteredList.length}</strong> siswa
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                aria-label="Halaman sebelumnya"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="font-semibold text-slate-700 px-2">
+                Halaman {currentPage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                aria-label="Halaman berikutnya"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add / Edit Modal */}

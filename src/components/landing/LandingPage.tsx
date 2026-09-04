@@ -201,16 +201,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
             <span>© 2026 Kabinet Satyasena. All rights reserved.</span>
             <div className="flex items-center gap-4">
-              <span className="text-[11px] text-slate-400">
-                Akses Administrator via{' '}
-                <a
-                  href="#admin"
-                  className="text-slate-400 hover:text-slate-300 transition-colors font-mono"
-                  title="Akses Admin"
-                >
-                  /admin
-                </a>
-              </span>
+              <a href="https://www.instagram.com/kabinet.asrama/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a>
             </div>
           </div>
         </div>

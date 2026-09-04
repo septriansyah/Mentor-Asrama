@@ -241,6 +241,7 @@ export const MentorDashboard: React.FC<MentorDashboardProps> = ({
           currentMentorName={currentMentor.nama}
           roomLock={currentKelompokKey}
           roomLockLabel={kelompokLabel(currentMentor)}
+          showExport={false}
         />
       )}
 

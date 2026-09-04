@@ -7,6 +7,8 @@ import {
   CheckCircle2,
   AlertCircle,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Info,
   Edit3,
   X,
@@ -39,6 +41,8 @@ function excelColumnLetter(index: number): string {
   return s;
 }
 
+const PAGE_SIZE = 10;
+
 interface ExcelSpreadsheetProps {
   mentees: Siswa[];
   indikatorList: Indikator[];
@@ -49,6 +53,7 @@ interface ExcelSpreadsheetProps {
   roomLock?: string; // If mentor, lock to their kelompok (kelompokKey value)
   roomLockLabel?: string; // Human-readable label for roomLock, e.g. "ASPA Lt.2 - Kelompok 1"
   readOnly?: boolean;
+  showExport?: boolean;
 }
 
 interface ActiveCell {
@@ -68,6 +73,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
   roomLock,
   roomLockLabel,
   readOnly = false,
+  showExport = true,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [kamarFilter, setKamarFilter] = useState<string>(roomLock || 'all');
@@ -75,6 +81,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
   const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
   const [customValue, setCustomValue] = useState<string>('');
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const popoverRef = useRef<HTMLDivElement | null>(null);
 
@@ -102,6 +109,17 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
       return matchSearch && matchKamar;
     });
   }, [mentees, searchQuery, kamarFilter, roomLock]);
+
+  // Reset ke halaman 1 setiap kali filter/pencarian/bulan berubah agar tidak nyangkut di halaman kosong
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, kamarFilter, roomLock, bulan]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredMentees.length / PAGE_SIZE));
+  const paginatedMentees = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredMentees.slice(start, start + PAGE_SIZE);
+  }, [filteredMentees, currentPage]);
 
   // Unique kelompok options (key -> readable label) for the filter dropdown
   const kelompokOptions = useMemo(() => {
@@ -232,14 +250,16 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
               {savedNotice}
             </span>
           )}
-          <button
-            type="button"
-            onClick={() => StorageService.exportToCSV(mentees, indikatorList, penilaianList, bulan)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-sky-700 hover:bg-sky-50 rounded-lg font-semibold text-xs shadow-xs transition-colors cursor-pointer"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span>Ekspor CSV</span>
-          </button>
+          {showExport && (
+            <button
+              type="button"
+              onClick={() => StorageService.exportToCSV(mentees, indikatorList, penilaianList, bulan)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-sky-700 hover:bg-sky-50 rounded-lg font-semibold text-xs shadow-xs transition-colors cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Ekspor CSV</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -355,7 +375,8 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
                 </td>
               </tr>
             ) : (
-              filteredMentees.map((mentee, rIdx) => {
+              paginatedMentees.map((mentee, pIdx) => {
+                const rIdx = (currentPage - 1) * PAGE_SIZE + pIdx;
                 const assessment = penilaianList.find((p) => p.siswaId === mentee.id);
                 const scores = assessment?.nilai || {};
                 const values = indikatorList
@@ -477,6 +498,43 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Bar */}
+      {filteredMentees.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-4 py-2.5 border-t border-slate-300 bg-slate-50 text-xs text-slate-600">
+          <span>
+            Menampilkan{' '}
+            <strong>
+              {(currentPage - 1) * PAGE_SIZE + 1}-
+              {Math.min(currentPage * PAGE_SIZE, filteredMentees.length)}
+            </strong>{' '}
+            dari <strong>{filteredMentees.length}</strong> siswa
+          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-1.5 rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              aria-label="Halaman sebelumnya"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="font-semibold text-slate-700 px-2">
+              Halaman {currentPage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-1.5 rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              aria-label="Halaman berikutnya"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Excel Sheet Tabs at Bottom */}
       <div className="bg-slate-200 border-t border-slate-300 px-3 py-1 flex items-center justify-between text-xs text-slate-600">
