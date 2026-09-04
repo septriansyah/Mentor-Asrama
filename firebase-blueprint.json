@@ -1,0 +1,102 @@
+{
+  "entities": {
+    "Siswa": {
+      "title": "Siswa",
+      "description": "Dokumen data siswa mentor dan mentee",
+      "type": "object",
+      "properties": {
+        "nama": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Mentor", "Mentee"]
+        },
+        "angkatan": {
+          "type": "number"
+        },
+        "kamar": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["nama", "status", "angkatan", "kamar"]
+    },
+    "Indikator": {
+      "title": "Indikator",
+      "description": "5 dokumen indikator penilaian",
+      "type": "object",
+      "properties": {
+        "urutan": {
+          "type": "number"
+        },
+        "nama": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "deskripsi": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["urutan", "nama", "deskripsi"]
+    },
+    "Penilaian": {
+      "title": "Penilaian",
+      "description": "Dokumen penilaian tiap mentee per indikator",
+      "type": "object",
+      "properties": {
+        "siswaId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "kamar": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "nilai": {
+          "type": "object"
+        },
+        "diisiOleh": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "lengkap": {
+          "type": "boolean"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["siswaId", "kamar", "nilai", "diisiOleh", "lengkap"]
+    }
+  },
+  "firestore": {
+    "/siswa/{siswaId}": {
+      "schema": "Siswa",
+      "description": "Data master mentor dan mentee"
+    },
+    "/indikator/{indikatorId}": {
+      "schema": "Indikator",
+      "description": "5 indikator penilaian yang dikelola admin"
+    },
+    "/penilaian/{siswaId}": {
+      "schema": "Penilaian",
+      "description": "Penilaian per mentee lintas 5 indikator"
+    }
+  }
+}

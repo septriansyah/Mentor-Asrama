@@ -1,0 +1,6 @@
+{
+  "name": "Sistem Penilaian Mentor-Mentee",
+  "description": "Aplikasi penilaian mentee oleh mentor berbasis kamar dengan manajemen siswa, 5 indikator penilaian, dan ekspor CSV untuk admin.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

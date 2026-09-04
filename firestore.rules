@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn();
+    }
+
+    // Collection: Siswa
+    match /siswa/{siswaId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Collection: Indikator
+    match /indikator/{indikatorId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Collection: Penilaian
+    match /penilaian/{siswaId} {
+      allow read: if true;
+      allow write: if true; // Sesuai DESIGN.md Opsi A untuk MVP (atau request.auth != null untuk admin)
+    }
+  }
+}
