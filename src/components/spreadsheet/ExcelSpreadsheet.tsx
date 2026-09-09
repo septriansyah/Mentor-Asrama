@@ -9,6 +9,9 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
   Info,
   Edit3,
   X,
@@ -77,6 +80,8 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [kamarFilter, setKamarFilter] = useState<string>(roomLock || 'all');
+  const [sortBy, setSortBy] = useState<'nama' | 'kelompok' | 'rata' | 'status'>('nama');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [activeCell, setActiveCell] = useState<ActiveCell | null>(null);
   const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
   const [customValue, setCustomValue] = useState<string>('');
@@ -110,16 +115,52 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
     });
   }, [mentees, searchQuery, kamarFilter, roomLock]);
 
-  // Reset ke halaman 1 setiap kali filter/pencarian/bulan berubah agar tidak nyangkut di halaman kosong
+  // Reset ke halaman 1 setiap kali filter/pencarian/bulan/urutan berubah agar tidak nyangkut di halaman kosong
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, kamarFilter, roomLock, bulan]);
+  }, [searchQuery, kamarFilter, roomLock, bulan, sortBy, sortDir]);
+
+  // Rata-rata & status kelengkapan satu mentee, dipakai untuk sorting maupun render baris.
+  const getMenteeSummary = (menteeId: string) => {
+    const assessment = penilaianList.find((p) => p.siswaId === menteeId);
+    const scores = assessment?.nilai || {};
+    const values = indikatorList
+      .map((ind) => scores[String(ind.urutan)])
+      .filter((v) => typeof v === 'number' && !isNaN(v)) as number[];
+    const isComplete = indikatorList.length > 0 && values.length === indikatorList.length;
+    const average = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : -1;
+    return { average, isComplete };
+  };
+
+  const sortedMentees = useMemo(() => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...filteredMentees].sort((a, b) => {
+      switch (sortBy) {
+        case 'kelompok':
+          return dir * kelompokLabel(a).localeCompare(kelompokLabel(b));
+        case 'rata': {
+          const sa = getMenteeSummary(a.id).average;
+          const sb = getMenteeSummary(b.id).average;
+          return dir * (sa - sb);
+        }
+        case 'status': {
+          const sa = getMenteeSummary(a.id).isComplete ? 1 : 0;
+          const sb = getMenteeSummary(b.id).isComplete ? 1 : 0;
+          return dir * (sa - sb);
+        }
+        case 'nama':
+        default:
+          return dir * a.nama.localeCompare(b.nama);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredMentees, sortBy, sortDir, penilaianList, indikatorList]);
 
   const totalPages = Math.max(1, Math.ceil(filteredMentees.length / PAGE_SIZE));
   const paginatedMentees = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
-    return filteredMentees.slice(start, start + PAGE_SIZE);
-  }, [filteredMentees, currentPage]);
+    return sortedMentees.slice(start, start + PAGE_SIZE);
+  }, [sortedMentees, currentPage]);
 
   // Unique kelompok options (key -> readable label) for the filter dropdown
   const kelompokOptions = useMemo(() => {
@@ -313,6 +354,33 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
               placeholder="Cari siswa..."
               className="bg-white border border-slate-300 rounded pl-7 pr-2.5 py-1 text-xs text-slate-700 focus:ring-1 focus:ring-sky-600 outline-hidden w-36 sm:w-44"
             />
+          </div>
+
+          {/* Sorting */}
+          <div className="flex items-center gap-1">
+            <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+              className="bg-white border border-slate-300 rounded px-2 py-1 text-slate-700 text-xs outline-hidden"
+            >
+              <option value="nama">Urutkan: Nama</option>
+              <option value="kelompok">Urutkan: Kelompok</option>
+              <option value="rata">Urutkan: Rata-rata</option>
+              <option value="status">Urutkan: Status</option>
+            </select>
+            <button
+              type="button"
+              onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+              title={sortDir === 'asc' ? 'Menaik (A-Z / kecil-besar)' : 'Menurun (Z-A / besar-kecil)'}
+              className="bg-white border border-slate-300 rounded p-1 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              {sortDir === 'asc' ? (
+                <ArrowUp className="w-3.5 h-3.5" />
+              ) : (
+                <ArrowDown className="w-3.5 h-3.5" />
+              )}
+            </button>
           </div>
         </div>
       </div>
