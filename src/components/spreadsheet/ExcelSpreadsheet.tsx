@@ -83,7 +83,6 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
   const [sortBy, setSortBy] = useState<'nama' | 'kelompok' | 'rata' | 'status'>('nama');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [activeCell, setActiveCell] = useState<ActiveCell | null>(null);
-  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
   const [customValue, setCustomValue] = useState<string>('');
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -175,20 +174,15 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
     return p?.nilai?.[urutan];
   };
 
-  // Handle cell click to open Excel dropdown
+  // Handle cell click to open Excel dropdown (ditampilkan sebagai popup terpusat di layar)
   const handleCellClick = (
-    e: React.MouseEvent<HTMLTableCellElement>,
+    _e: React.MouseEvent<HTMLTableCellElement>,
     menteeId: string,
     indikatorUrutan: string,
     columnLetter: string,
     rowIndex: number
   ) => {
     if (readOnly) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    setDropdownPos({
-      top: rect.bottom + window.scrollY + 4,
-      left: Math.max(12, Math.min(window.innerWidth - 320, rect.left + window.scrollX - 40)),
-    });
     setActiveCell({ menteeId, indikatorUrutan, columnLetter, rowIndex });
 
     const currentScore = getScore(menteeId, indikatorUrutan);
@@ -617,17 +611,12 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
         </div>
       </div>
 
-      {/* Excel Floating Cell Dropdown Popover */}
-      {activeCell && dropdownPos && activeIndikator && (
+      {/* Excel Cell Dropdown - popup terpusat di layar, bukan menempel di bawah sel */}
+      {activeCell && activeIndikator && (
+        <div className="fixed inset-0 z-60 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
         <div
           ref={popoverRef}
-          style={{
-            position: 'absolute',
-            top: `${dropdownPos.top}px`,
-            left: `${dropdownPos.left}px`,
-            zIndex: 60,
-          }}
-          className="w-80 bg-white rounded-xl shadow-2xl border-2 border-sky-600 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+          className="w-full max-w-sm bg-white rounded-xl shadow-2xl border-2 border-sky-600 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         >
           {/* Header */}
           <div className="bg-sky-600 text-white p-3 flex items-start justify-between gap-2">
@@ -721,6 +710,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
               Hapus
             </button>
           </div>
+        </div>
         </div>
       )}
     </div>
