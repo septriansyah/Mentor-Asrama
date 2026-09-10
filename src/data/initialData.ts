@@ -575,89 +575,93 @@ export const INITIAL_SISWA: Siswa[] = RAW_SISWA.map(
   }
 );
 
-// Rubrik resmi penilaian mentor-mentee (dinilai 1x per periode/bulan): A. Kegiatan Mentoring (10 poin),
-// B. Diskusi Mentoring (10 poin), C. Kedisiplinan (20 poin), D. Sosialisasi (20 poin), E. Keaktifan
-// (gabungan Kepanitiaan + Antusiasme - 2 komponen dipilih dalam satu popup, skornya dijumlahkan jadi
-// satu nilai). Setiap opsi dropdown labelnya adalah catatan/deskripsi perilaku, BUKAN "X Poin" generik.
+// Rubrik resmi penilaian mentor-mentee (dinilai 1x per periode/bulan): A. Kegiatan & Diskusi Mentoring
+// (gabungan, 20 poin), B. Kedisiplinan (20 poin), C. Sosialisasi (20 poin), D. Keaktifan (gabungan,
+// 35 poin). Indikator gabungan (A & D) punya beberapa komponen yang dipilih dalam satu popup yang
+// sama, lalu skornya dijumlahkan otomatis jadi satu nilai. Setiap opsi dropdown labelnya adalah
+// catatan/deskripsi perilaku, BUKAN "X Poin" generik.
 export const INITIAL_INDIKATOR: Indikator[] = [
   {
     id: '1',
     urutan: 1,
-    nama: 'A. Kegiatan Mentoring',
-    deskripsi: 'Menghadiri kegiatan mentoring dalam 1 periode (dinilai 1x per periode). Skala 1-10 poin.',
-    opsiNilai: [
-      { id: 'opt-1-1', label: 'Tidak pernah hadir sama sekali selama 1 periode', score: 1 },
-      { id: 'opt-1-2', label: 'Hadir 1 kali selama 1 periode', score: 5 },
-      { id: 'opt-1-3', label: 'Hadir 2 kali selama 1 periode', score: 10 },
+    nama: 'A. Kegiatan & Diskusi Mentoring',
+    deskripsi: 'Kehadiran dalam kegiatan mentoring & keaktifan dalam diskusi mentoring (dinilai 1x per periode) - 2 komponen di bawah dijumlahkan menjadi satu nilai. Skala 1-20 poin.',
+    komponen: [
+      {
+        id: 'kehadiran',
+        nama: 'Menghadiri Kegiatan Mentoring',
+        opsiNilai: [
+          { id: 'opt-1-kehadiran-1', label: 'Tidak pernah hadir sama sekali selama 1 periode', score: 1 },
+          { id: 'opt-1-kehadiran-2', label: 'Hadir 1 kali selama 1 periode', score: 5 },
+          { id: 'opt-1-kehadiran-3', label: 'Hadir 2 kali selama 1 periode', score: 10 },
+        ],
+      },
+      {
+        id: 'diskusi',
+        nama: 'Diskusi Mentoring (Bertanya, Menjawab, atau Menanggapi)',
+        opsiNilai: [
+          { id: 'opt-1-diskusi-1', label: 'Tidak pernah ikut berdiskusi', score: 2 },
+          { id: 'opt-1-diskusi-2', label: 'Jarang terlibat dan hanya sesekali berbicara', score: 4 },
+          { id: 'opt-1-diskusi-3', label: 'Cukup berpartisipasi dalam diskusi', score: 6 },
+          { id: 'opt-1-diskusi-4', label: 'Sering bertanya, menjawab, atau menanggapi', score: 8 },
+          { id: 'opt-1-diskusi-5', label: 'Sangat aktif, kritis, dan memberi kontribusi besar dalam diskusi', score: 10 },
+        ],
+      },
     ],
     updatedAt: '2026-01-10T09:00:00.000Z',
   },
   {
     id: '2',
     urutan: 2,
-    nama: 'B. Diskusi Mentoring',
-    deskripsi: 'Berperan aktif dalam diskusi mentoring (bertanya, menjawab, atau menanggapi). Skala 1-10 poin.',
+    nama: 'B. Kedisiplinan',
+    deskripsi: 'Kepatuhan pada jadwal kegiatan asrama (dari 8 kegiatan). Skala 1-20 poin.',
     opsiNilai: [
-      { id: 'opt-2-1', label: 'Tidak pernah ikut berdiskusi', score: 2 },
-      { id: 'opt-2-2', label: 'Jarang terlibat dan hanya sesekali berbicara', score: 4 },
-      { id: 'opt-2-3', label: 'Cukup berpartisipasi dalam diskusi', score: 6 },
-      { id: 'opt-2-4', label: 'Sering bertanya, menjawab, atau menanggapi', score: 8 },
-      { id: 'opt-2-5', label: 'Sangat aktif, kritis, dan memberi kontribusi besar dalam diskusi', score: 10 },
+      { id: 'opt-2-1', label: 'Kadang mengikuti 2/8 kegiatan asrama', score: 5 },
+      { id: 'opt-2-2', label: 'Cukup rutin mengikuti 4/8 kegiatan asrama', score: 10 },
+      { id: 'opt-2-3', label: 'Mengikuti 6/8 kegiatan asrama', score: 15 },
+      { id: 'opt-2-4', label: 'Mengikuti 8/8 (100%) kegiatan asrama', score: 20 },
     ],
     updatedAt: '2026-01-10T09:00:00.000Z',
   },
   {
     id: '3',
     urutan: 3,
-    nama: 'C. Kedisiplinan',
-    deskripsi: 'Kepatuhan pada jadwal kegiatan asrama (dari 8 kegiatan). Skala 1-20 poin.',
+    nama: 'C. Sosialisasi',
+    deskripsi: 'Membangun komunikasi, sikap sopan, ramah, & menghargai sesama warga asrama. Skala 1-20 poin.',
     opsiNilai: [
-      { id: 'opt-3-1', label: 'Kadang mengikuti 2/8 kegiatan asrama', score: 5 },
-      { id: 'opt-3-2', label: 'Cukup rutin mengikuti 4/8 kegiatan asrama', score: 10 },
-      { id: 'opt-3-3', label: 'Mengikuti 6/8 kegiatan asrama', score: 15 },
-      { id: 'opt-3-4', label: 'Mengikuti 8/8 (100%) kegiatan asrama', score: 20 },
+      { id: 'opt-3-1', label: 'Sering menunjukkan sikap kurang sopan atau tidak menghargai orang lain', score: 2 },
+      { id: 'opt-3-2', label: 'Kurang peduli terhadap lingkungan sosial', score: 5 },
+      { id: 'opt-3-3', label: 'Berinteraksi seperlunya saja', score: 8 },
+      { id: 'opt-3-4', label: 'Cukup ramah dan bisa bekerja sama', score: 11 },
+      { id: 'opt-3-5', label: 'Ramah, sopan, dan menghargai orang lain', score: 14 },
+      { id: 'opt-3-6', label: 'Menjadi pribadi yang positif dan mudah diajak kerja sama', score: 17 },
+      { id: 'opt-3-7', label: 'Menjadi teladan dalam sikap sopan, ramah, dan saling menghargai', score: 20 },
     ],
     updatedAt: '2026-01-10T09:00:00.000Z',
   },
   {
     id: '4',
     urutan: 4,
-    nama: 'D. Sosialisasi',
-    deskripsi: 'Membangun komunikasi, sikap sopan, ramah, & menghargai sesama warga asrama. Skala 1-20 poin.',
-    opsiNilai: [
-      { id: 'opt-4-1', label: 'Sering menunjukkan sikap kurang sopan atau tidak menghargai orang lain', score: 2 },
-      { id: 'opt-4-2', label: 'Kurang peduli terhadap lingkungan sosial', score: 5 },
-      { id: 'opt-4-3', label: 'Berinteraksi seperlunya saja', score: 8 },
-      { id: 'opt-4-4', label: 'Cukup ramah dan bisa bekerja sama', score: 11 },
-      { id: 'opt-4-5', label: 'Ramah, sopan, dan menghargai orang lain', score: 14 },
-      { id: 'opt-4-6', label: 'Menjadi pribadi yang positif dan mudah diajak kerja sama', score: 17 },
-      { id: 'opt-4-7', label: 'Menjadi teladan dalam sikap sopan, ramah, dan saling menghargai', score: 20 },
-    ],
-    updatedAt: '2026-01-10T09:00:00.000Z',
-  },
-  {
-    id: '5',
-    urutan: 5,
-    nama: 'E. Keaktifan',
+    nama: 'D. Keaktifan',
     deskripsi: 'Kontribusi mentee dalam kepanitiaan & antusiasme kegiatan asrama - 2 komponen di bawah dijumlahkan menjadi satu nilai. Skala 1-35 poin.',
     komponen: [
       {
         id: 'kepanitiaan',
         nama: 'Mengikuti Kepanitiaan',
         opsiNilai: [
-          { id: 'opt-5-kepanitiaan-1', label: 'Mendaftar tetapi tidak diterima', score: 5 },
-          { id: 'opt-5-kepanitiaan-2', label: 'Mendaftar dan diterima', score: 10 },
-          { id: 'opt-5-kepanitiaan-3', label: 'Aktif berpartisipasi dalam kepanitiaan', score: 15 },
+          { id: 'opt-4-kepanitiaan-1', label: 'Mendaftar tetapi tidak diterima', score: 5 },
+          { id: 'opt-4-kepanitiaan-2', label: 'Mendaftar dan diterima', score: 10 },
+          { id: 'opt-4-kepanitiaan-3', label: 'Aktif berpartisipasi dalam kepanitiaan', score: 15 },
         ],
       },
       {
         id: 'antusiasme',
         nama: 'Antusiasme Mandiri (Perangkat Acara)',
         opsiNilai: [
-          { id: 'opt-5-antusiasme-1', label: 'Menjadi perangkat acara kegiatan rutin asrama, 1/8', score: 5 },
-          { id: 'opt-5-antusiasme-2', label: 'Menjadi perangkat acara kegiatan rutin asrama, 2/8', score: 10 },
-          { id: 'opt-5-antusiasme-3', label: 'Menjadi perangkat acara kegiatan rutin asrama, 3/8', score: 15 },
-          { id: 'opt-5-antusiasme-4', label: 'Menjadi perangkat acara kegiatan rutin asrama, >4', score: 20 },
+          { id: 'opt-4-antusiasme-1', label: 'Menjadi perangkat acara kegiatan rutin asrama, 1/8', score: 5 },
+          { id: 'opt-4-antusiasme-2', label: 'Menjadi perangkat acara kegiatan rutin asrama, 2/8', score: 10 },
+          { id: 'opt-4-antusiasme-3', label: 'Menjadi perangkat acara kegiatan rutin asrama, 3/8', score: 15 },
+          { id: 'opt-4-antusiasme-4', label: 'Menjadi perangkat acara kegiatan rutin asrama, >4', score: 20 },
         ],
       },
     ],
