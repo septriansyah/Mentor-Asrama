@@ -174,6 +174,7 @@ export const MentorDashboard: React.FC<MentorDashboardProps> = ({
         roomLock={currentKelompokKey}
         roomLockLabel={kelompokLabel(currentMentor)}
         showExport={false}
+        showAverage={false}
       />
         </>
       )}

@@ -58,6 +58,7 @@ interface ExcelSpreadsheetProps {
   roomLockLabel?: string; // Human-readable label for roomLock, e.g. "ASPA Lt.2 - Kelompok 1"
   readOnly?: boolean;
   showExport?: boolean;
+  showAverage?: boolean;
 }
 
 interface ActiveCell {
@@ -78,6 +79,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
   roomLockLabel,
   readOnly = false,
   showExport = true,
+  showAverage = true,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [kamarFilter, setKamarFilter] = useState<string>(roomLock || 'all');
@@ -316,7 +318,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
   // (E, F, G, ... mengikuti jumlah indikator - tidak lagi tetap 5), diakhiri Rata-rata & Status.
   const indicatorCols = indikatorList.map((_, i) => excelColumnLetter(4 + i));
   const rataRataCol = excelColumnLetter(4 + indikatorList.length);
-  const statusCol = excelColumnLetter(4 + indikatorList.length + 1);
+  const statusCol = excelColumnLetter(4 + indikatorList.length + (showAverage ? 1 : 0));
   const firstIndCol = indicatorCols[0] || 'E';
   const lastIndCol = indicatorCols[indicatorCols.length - 1] || 'E';
 
@@ -457,7 +459,9 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
                   {indicatorCols[i]}
                 </th>
               ))}
-              <th className="w-20 border-r border-slate-300 py-1 font-mono">{rataRataCol}</th>
+              {showAverage && (
+                <th className="w-20 border-r border-slate-300 py-1 font-mono">{rataRataCol}</th>
+              )}
               <th className="w-28 border-slate-300 py-1 font-mono">{statusCol}</th>
             </tr>
 
@@ -480,7 +484,9 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
                   </div>
                 </th>
               ))}
-              <th className="border-r border-slate-300 py-2 text-center">Rata²</th>
+              {showAverage && (
+                <th className="border-r border-slate-300 py-2 text-center">Rata²</th>
+              )}
               <th className="py-2 text-center">Status</th>
             </tr>
           </thead>
@@ -489,7 +495,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
           <tbody className="divide-y divide-slate-200">
             {filteredMentees.length === 0 ? (
               <tr>
-                <td colSpan={6 + indikatorList.length} className="py-10 text-center text-slate-400">
+                <td colSpan={(showAverage ? 6 : 5) + indikatorList.length} className="py-10 text-center text-slate-400">
                   Tidak ada data mentee yang sesuai filter atau pencarian.
                 </td>
               </tr>
@@ -592,9 +598,11 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
                     })}
 
                     {/* Column J: Rata-rata */}
-                    <td className="border-r border-slate-200 py-2 px-2 text-center font-mono font-bold text-slate-900 bg-slate-50/50">
-                      {average}
-                    </td>
+                    {showAverage && (
+                      <td className="border-r border-slate-200 py-2 px-2 text-center font-mono font-bold text-slate-900 bg-slate-50/50">
+                        {average}
+                      </td>
+                    )}
 
                     {/* Column K: Status Kelengkapan */}
                     <td className="py-2 px-2 text-center">
