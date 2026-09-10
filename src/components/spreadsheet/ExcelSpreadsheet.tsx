@@ -27,6 +27,7 @@ import {
   OpsiNilai,
   kelompokKey,
   kelompokLabel,
+  komponenNilaiKey,
   AssessmentMonth,
 } from '../../types';
 import { StorageService } from '../../services/storage';
@@ -167,10 +168,20 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
     return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
   }, [mentees]);
 
-  // Get score for mentee & indicator
+  // Get score for mentee & indicator (untuk indikator gabungan, ini adalah TOTAL hasil penjumlahan)
   const getScore = (menteeId: string, urutan: string): number | undefined => {
     const p = penilaianList.find((item) => item.siswaId === menteeId);
     return p?.nilai?.[urutan];
+  };
+
+  // Get score satu komponen di dalam indikator gabungan (mis. "Kepanitiaan" di dalam "Keaktifan")
+  const getComponentScore = (
+    menteeId: string,
+    indikatorUrutan: number,
+    komponenId: string
+  ): number | undefined => {
+    const p = penilaianList.find((item) => item.siswaId === menteeId);
+    return p?.nilai?.[komponenNilaiKey(indikatorUrutan, komponenId)];
   };
 
   // Handle cell click to open Excel dropdown (ditampilkan sebagai popup terpusat di layar)
@@ -213,7 +224,51 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
     setActiveCell(null);
   };
 
-  // Clear score for active cell
+  // Set skor satu komponen di dalam indikator gabungan - total indikator (nilai[urutan]) otomatis
+  // dijumlahkan dari semua komponen begitu SEMUA komponen sudah terisi. Popup tetap terbuka supaya
+  // mentor bisa lanjut mengisi komponen lain di indikator yang sama.
+  const handleSelectComponentScore = (komponenId: string, score: number) => {
+    if (!activeCell || !activeIndikator?.komponen) return;
+    const { menteeId, indikatorUrutan } = activeCell;
+    const mentee = mentees.find((m) => m.id === menteeId);
+    if (!mentee) return;
+
+    const existing = penilaianList.find((p) => p.siswaId === menteeId);
+    const existingNilai = existing?.nilai || {};
+    const urutanNum = Number(indikatorUrutan);
+
+    const updatedNilai = {
+      ...existingNilai,
+      [komponenNilaiKey(urutanNum, komponenId)]: score,
+    };
+
+    const komponenScores = activeIndikator.komponen.map((k) =>
+      k.id === komponenId ? score : updatedNilai[komponenNilaiKey(urutanNum, k.id)]
+    );
+    const allFilled = komponenScores.every((v) => typeof v === 'number' && !isNaN(v));
+    if (allFilled) {
+      updatedNilai[indikatorUrutan] = komponenScores.reduce((a, b) => a + (b as number), 0);
+    } else {
+      delete updatedNilai[indikatorUrutan];
+    }
+
+    onSavePenilaian({
+      siswaId: menteeId,
+      bulan,
+      kamar: mentee.kamar,
+      nilai: updatedNilai,
+      diisiOleh: currentMentorName,
+    });
+
+    setSavedNotice(
+      allFilled
+        ? `Sel diperbarui: Total ${updatedNilai[indikatorUrutan]} tersimpan`
+        : `Komponen "${activeIndikator.komponen.find((k) => k.id === komponenId)?.nama}" tersimpan - lengkapi komponen lain untuk total`
+    );
+    setTimeout(() => setSavedNotice(null), 2500);
+  };
+
+  // Clear score for active cell (untuk indikator gabungan, hapus total + semua skor komponennya)
   const handleClearScore = () => {
     if (!activeCell) return;
     const { menteeId, indikatorUrutan } = activeCell;
@@ -225,6 +280,12 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
 
     const updatedNilai = { ...existing.nilai };
     delete updatedNilai[indikatorUrutan];
+    if (activeIndikator?.komponen) {
+      const urutanNum = Number(indikatorUrutan);
+      activeIndikator.komponen.forEach((k) => {
+        delete updatedNilai[komponenNilaiKey(urutanNum, k.id)];
+      });
+    }
 
     onSavePenilaian({
       siswaId: menteeId,
@@ -640,39 +701,92 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
             <span className="font-bold text-slate-800">{activeMentee?.nama}</span>
           </div>
 
-          {/* Dropdown Options List (Configured by Admin) */}
-          <div className="p-2 space-y-1 max-h-56 overflow-y-auto">
-            <div className="text-[11px] font-bold text-slate-500 px-2 py-0.5 uppercase tracking-wider flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-sky-600" />
-              <span>Pilihan Nilai (Standar Admin):</span>
-            </div>
+          {activeIndikator.komponen && activeIndikator.komponen.length > 0 ? (
+            <>
+              {/* Indikator Gabungan: isi tiap komponen, skornya otomatis dijumlahkan jadi total */}
+              <div className="p-2 space-y-3 max-h-80 overflow-y-auto">
+                {activeIndikator.komponen.map((komp) => {
+                  const selectedScore = getComponentScore(
+                    activeCell.menteeId,
+                    Number(activeCell.indikatorUrutan),
+                    komp.id
+                  );
+                  return (
+                    <div key={komp.id}>
+                      <div className="text-[11px] font-bold text-slate-500 px-2 py-0.5 uppercase tracking-wider flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-sky-600" />
+                        <span>{komp.nama}</span>
+                      </div>
+                      <div className="space-y-1">
+                        {komp.opsiNilai.map((opt) => {
+                          const isSelected = selectedScore === opt.score;
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => handleSelectComponentScore(komp.id, opt.score)}
+                              className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                                isSelected
+                                  ? 'bg-sky-100 border border-sky-300 text-navy-900 font-bold'
+                                  : 'hover:bg-slate-100 text-slate-800'
+                              }`}
+                            >
+                              <span className="leading-snug">{opt.label}</span>
+                              <span className="ml-2 font-mono font-bold bg-sky-600 text-white px-2 py-0.5 rounded text-xs shrink-0">
+                                {opt.score}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
 
-            {activeIndikator.opsiNilai && activeIndikator.opsiNilai.length > 0 ? (
-              activeIndikator.opsiNilai.map((opt) => {
-                const isSelected =
-                  getScore(activeCell.menteeId, activeCell.indikatorUrutan) === opt.score;
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => handleSelectScore(opt.score)}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
-                      isSelected
-                        ? 'bg-sky-100 border border-sky-300 text-navy-900 font-bold'
-                        : 'hover:bg-slate-100 text-slate-800'
-                    }`}
-                  >
-                    <span className="leading-snug">{opt.label}</span>
-                    <span className="ml-2 font-mono font-bold bg-sky-600 text-white px-2 py-0.5 rounded text-xs shrink-0">
-                      {opt.score}
-                    </span>
-                  </button>
-                );
-              })
-            ) : (
-              <div className="text-xs text-slate-400 p-2">Belum ada opsi dropdown untuk indikator ini.</div>
-            )}
-          </div>
+              {/* Total gabungan */}
+              <div className="p-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-600">Total (dijumlahkan):</span>
+                <span className="font-mono font-bold text-sm text-navy-800">
+                  {getScore(activeCell.menteeId, activeCell.indikatorUrutan) ?? '- (belum lengkap)'}
+                </span>
+              </div>
+            </>
+          ) : (
+            /* Dropdown Options List (Configured by Admin) */
+            <div className="p-2 space-y-1 max-h-56 overflow-y-auto">
+              <div className="text-[11px] font-bold text-slate-500 px-2 py-0.5 uppercase tracking-wider flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-sky-600" />
+                <span>Pilihan Nilai (Standar Admin):</span>
+              </div>
+
+              {activeIndikator.opsiNilai && activeIndikator.opsiNilai.length > 0 ? (
+                activeIndikator.opsiNilai.map((opt) => {
+                  const isSelected =
+                    getScore(activeCell.menteeId, activeCell.indikatorUrutan) === opt.score;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => handleSelectScore(opt.score)}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                        isSelected
+                          ? 'bg-sky-100 border border-sky-300 text-navy-900 font-bold'
+                          : 'hover:bg-slate-100 text-slate-800'
+                      }`}
+                    >
+                      <span className="leading-snug">{opt.label}</span>
+                      <span className="ml-2 font-mono font-bold bg-sky-600 text-white px-2 py-0.5 rounded text-xs shrink-0">
+                        {opt.score}
+                      </span>
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="text-xs text-slate-400 p-2">Belum ada opsi dropdown untuk indikator ini.</div>
+              )}
+            </div>
+          )}
 
           {/* Clear Score */}
           <div className="p-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end">

@@ -252,7 +252,32 @@ export const IndikatorTab: React.FC<IndikatorTabProps> = ({
                 />
               </div>
 
-              {/* Collapsible Dropdown Options Manager */}
+              {/* Indikator Gabungan (komponen) - read-only, dikelola lewat kode aplikasi */}
+              {ind.komponen && ind.komponen.length > 0 ? (
+                <div className="ml-11 pt-2 border-t border-slate-100">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-700 mb-2">
+                    <Sparkles className="w-3.5 h-3.5 text-navy-600" />
+                    <span>Indikator Gabungan ({ind.komponen.length} Komponen)</span>
+                  </div>
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      Indikator ini terdiri dari beberapa komponen yang diisi terpisah lalu skornya dijumlahkan otomatis menjadi satu nilai. Struktur komponen &amp; pilihan skornya dikelola lewat kode aplikasi, bukan dari halaman ini.
+                    </p>
+                    <div className="space-y-1.5">
+                      {ind.komponen.map((komp) => (
+                        <div
+                          key={komp.id}
+                          className="bg-white p-2 rounded-lg border border-slate-200 text-xs text-slate-700"
+                        >
+                          <span className="font-semibold">{komp.nama}</span>
+                          <span className="text-slate-400"> - {komp.opsiNilai.length} opsi</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+              /* Collapsible Dropdown Options Manager */
               <div className="ml-11 pt-2 border-t border-slate-100">
                 <div className="flex items-center justify-between mb-2">
                   <button
@@ -364,6 +389,7 @@ export const IndikatorTab: React.FC<IndikatorTabProps> = ({
                   </div>
                 )}
               </div>
+              )}
             </div>
           );
         })}

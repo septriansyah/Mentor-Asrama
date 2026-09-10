@@ -577,8 +577,8 @@ export const INITIAL_SISWA: Siswa[] = RAW_SISWA.map(
 
 // Rubrik resmi penilaian mentor-mentee (dinilai 1x per periode/bulan): A. Kegiatan Mentoring (10 poin),
 // B. Diskusi Mentoring (10 poin), C. Kedisiplinan (20 poin), D. Sosialisasi (20 poin), E. Keaktifan
-// (20 poin, terdiri dari Kepanitiaan & Antusiasme). Setiap opsi dropdown labelnya adalah catatan/
-// deskripsi perilaku, BUKAN sekadar "X Poin" generik.
+// (gabungan Kepanitiaan + Antusiasme - 2 komponen dipilih dalam satu popup, skornya dijumlahkan jadi
+// satu nilai). Setiap opsi dropdown labelnya adalah catatan/deskripsi perilaku, BUKAN "X Poin" generik.
 export const INITIAL_INDIKATOR: Indikator[] = [
   {
     id: '1',
@@ -638,25 +638,28 @@ export const INITIAL_INDIKATOR: Indikator[] = [
   {
     id: '5',
     urutan: 5,
-    nama: 'E1. Kepanitiaan',
-    deskripsi: 'Keaktifan - Mengikuti kepanitiaan. Skala 1-15 poin.',
-    opsiNilai: [
-      { id: 'opt-5-1', label: 'Mendaftar tetapi tidak diterima', score: 5 },
-      { id: 'opt-5-2', label: 'Mendaftar dan diterima', score: 10 },
-      { id: 'opt-5-3', label: 'Aktif berpartisipasi dalam kepanitiaan', score: 15 },
-    ],
-    updatedAt: '2026-01-10T09:00:00.000Z',
-  },
-  {
-    id: '6',
-    urutan: 6,
-    nama: 'E2. Antusiasme Mandiri',
-    deskripsi: 'Keaktifan - Menunjukkan antusiasme tanpa diminta dalam kegiatan Kabinet. Skala 1-20 poin.',
-    opsiNilai: [
-      { id: 'opt-6-1', label: 'Menjadi perangkat acara kegiatan rutin asrama, 1/8', score: 5 },
-      { id: 'opt-6-2', label: 'Menjadi perangkat acara kegiatan rutin asrama, 2/8', score: 10 },
-      { id: 'opt-6-3', label: 'Menjadi perangkat acara kegiatan rutin asrama, 3/8', score: 15 },
-      { id: 'opt-6-4', label: 'Menjadi perangkat acara kegiatan rutin asrama, >4', score: 20 },
+    nama: 'E. Keaktifan',
+    deskripsi: 'Kontribusi mentee dalam kepanitiaan & antusiasme kegiatan asrama - 2 komponen di bawah dijumlahkan menjadi satu nilai. Skala 1-35 poin.',
+    komponen: [
+      {
+        id: 'kepanitiaan',
+        nama: 'Mengikuti Kepanitiaan',
+        opsiNilai: [
+          { id: 'opt-5-kepanitiaan-1', label: 'Mendaftar tetapi tidak diterima', score: 5 },
+          { id: 'opt-5-kepanitiaan-2', label: 'Mendaftar dan diterima', score: 10 },
+          { id: 'opt-5-kepanitiaan-3', label: 'Aktif berpartisipasi dalam kepanitiaan', score: 15 },
+        ],
+      },
+      {
+        id: 'antusiasme',
+        nama: 'Antusiasme Mandiri (Perangkat Acara)',
+        opsiNilai: [
+          { id: 'opt-5-antusiasme-1', label: 'Menjadi perangkat acara kegiatan rutin asrama, 1/8', score: 5 },
+          { id: 'opt-5-antusiasme-2', label: 'Menjadi perangkat acara kegiatan rutin asrama, 2/8', score: 10 },
+          { id: 'opt-5-antusiasme-3', label: 'Menjadi perangkat acara kegiatan rutin asrama, 3/8', score: 15 },
+          { id: 'opt-5-antusiasme-4', label: 'Menjadi perangkat acara kegiatan rutin asrama, >4', score: 20 },
+        ],
+      },
     ],
     updatedAt: '2026-01-10T09:00:00.000Z',
   },

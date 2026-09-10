@@ -30,12 +30,22 @@ export interface OpsiNilai {
   score: number;
 }
 
+// Sub-komponen dari satu indikator gabungan (mis. "Keaktifan" = Kepanitiaan + Antusiasme).
+// Setiap komponen dipilih terpisah di popup yang sama, lalu skornya DIJUMLAHKAN menjadi
+// satu nilai untuk indikator induknya (disimpan di Penilaian.nilai[indikator.urutan]).
+export interface IndikatorKomponen {
+  id: string;
+  nama: string;
+  opsiNilai: OpsiNilai[];
+}
+
 export interface Indikator {
   id: string;
   urutan: number; // urutan unik per indikator; jumlah indikator TIDAK dibatasi 5
   nama: string;
   deskripsi: string;
   opsiNilai?: OpsiNilai[];
+  komponen?: IndikatorKomponen[]; // jika terisi, indikator ini gabungan - opsiNilai di atas tidak dipakai
   updatedAt: string;
 }
 
@@ -50,6 +60,12 @@ export type AssessmentMonth = (typeof ASSESSMENT_MONTHS)[number];
 
 export function penilaianId(siswaId: string, bulan: string): string {
   return `${siswaId}__${bulan}`;
+}
+
+// Key penyimpanan skor satu komponen di dalam indikator gabungan, di PenilaianMap yang sama.
+// Skor total indikator (sum semua komponen) tetap disimpan di nilai[indikatorUrutan] seperti biasa.
+export function komponenNilaiKey(indikatorUrutan: number, komponenId: string): string {
+  return `${indikatorUrutan}__${komponenId}`;
 }
 
 export interface Penilaian {
