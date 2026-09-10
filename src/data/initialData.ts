@@ -575,71 +575,63 @@ export const INITIAL_SISWA: Siswa[] = RAW_SISWA.map(
   }
 );
 
-// Membuat opsi nilai 1..max (dipakai untuk indikator dengan skala poin, bukan skala 50-95).
-function poinOptions(indId: string, max: number): { id: string; label: string; score: number }[] {
-  return Array.from({ length: max }, (_, i) => {
-    const poin = i + 1;
-    return { id: `opt-${indId}-${poin}`, label: `${poin} Poin`, score: poin };
-  });
-}
-
-// Rubrik resmi penilaian mentor-mentee: kategori B. Kedisiplinan (10 poin), C. Sosialisasi (10 poin),
-// D. Keaktifan (20 poin). Setiap rincian jadi satu indikator dengan skala poin masing-masing.
+// Rubrik resmi penilaian mentor-mentee (dinilai 1x per periode/bulan): A. Kegiatan Mentoring (10 poin),
+// B. Diskusi Mentoring (10 poin), C. Kedisiplinan (20 poin), D. Sosialisasi (20 poin). Setiap opsi
+// dropdown labelnya adalah catatan/deskripsi perilaku, BUKAN sekadar "X Poin" generik.
 export const INITIAL_INDIKATOR: Indikator[] = [
   {
     id: '1',
     urutan: 1,
-    nama: 'B1. Menghadiri Kegiatan Mentoring',
-    deskripsi: 'Kedisiplinan - Menghadiri kegiatan mentoring dalam 1 periode. Skala 1-5 poin.',
-    opsiNilai: poinOptions('1', 5),
+    nama: 'A. Kegiatan Mentoring',
+    deskripsi: 'Menghadiri kegiatan mentoring dalam 1 periode (dinilai 1x per periode). Skala 1-10 poin.',
+    opsiNilai: [
+      { id: 'opt-1-1', label: 'Tidak pernah hadir sama sekali selama 1 periode', score: 1 },
+      { id: 'opt-1-2', label: 'Hadir 1 kali selama 1 periode', score: 5 },
+      { id: 'opt-1-3', label: 'Hadir 2 kali selama 1 periode', score: 10 },
+    ],
     updatedAt: '2026-01-10T09:00:00.000Z',
   },
   {
     id: '2',
     urutan: 2,
-    nama: 'B2. Kepatuhan Jadwal Asrama',
-    deskripsi: 'Kedisiplinan - Kepatuhan pada jadwal kegiatan asrama, terutama kajian. Skala 1-5 poin.',
-    opsiNilai: poinOptions('2', 5),
+    nama: 'B. Diskusi Mentoring',
+    deskripsi: 'Berperan aktif dalam diskusi mentoring (bertanya, menjawab, atau menanggapi). Skala 1-10 poin.',
+    opsiNilai: [
+      { id: 'opt-2-1', label: 'Tidak pernah ikut berdiskusi', score: 2 },
+      { id: 'opt-2-2', label: 'Jarang terlibat dan hanya sesekali berbicara', score: 4 },
+      { id: 'opt-2-3', label: 'Cukup berpartisipasi dalam diskusi', score: 6 },
+      { id: 'opt-2-4', label: 'Sering bertanya, menjawab, atau menanggapi', score: 8 },
+      { id: 'opt-2-5', label: 'Sangat aktif, kritis, dan memberi kontribusi besar dalam diskusi', score: 10 },
+    ],
     updatedAt: '2026-01-10T09:00:00.000Z',
   },
   {
     id: '3',
     urutan: 3,
-    nama: 'C1. Partisipasi Grup WA Mentoring',
-    deskripsi: 'Sosialisasi - Berpartisipasi aktif dalam Grup WA Mentoring. Skala 1-3 poin.',
-    opsiNilai: poinOptions('3', 3),
+    nama: 'C. Kedisiplinan',
+    deskripsi: 'Kepatuhan pada jadwal kegiatan asrama (dari 8 kegiatan). Skala 1-20 poin.',
+    opsiNilai: [
+      { id: 'opt-3-1', label: 'Kadang mengikuti 2/8 kegiatan asrama', score: 5 },
+      { id: 'opt-3-2', label: 'Cukup rutin mengikuti 4/8 kegiatan asrama', score: 10 },
+      { id: 'opt-3-3', label: 'Mengikuti 6/8 kegiatan asrama', score: 15 },
+      { id: 'opt-3-4', label: 'Mengikuti 8/8 (100%) kegiatan asrama', score: 20 },
+    ],
     updatedAt: '2026-01-10T09:00:00.000Z',
   },
   {
     id: '4',
     urutan: 4,
-    nama: 'C2. Komunikasi & Sikap',
-    deskripsi: 'Sosialisasi - Membangun komunikasi, sikap sopan, ramah, & menghargai sesama warga asrama. Skala 1-7 poin.',
-    opsiNilai: poinOptions('4', 7),
-    updatedAt: '2026-01-10T09:00:00.000Z',
-  },
-  {
-    id: '5',
-    urutan: 5,
-    nama: 'D1. Diskusi Mentoring',
-    deskripsi: 'Keaktifan - Berperan aktif dalam diskusi mentoring (bertanya, menjawab, atau menanggapi). Skala 1-5 poin.',
-    opsiNilai: poinOptions('5', 5),
-    updatedAt: '2026-01-10T09:00:00.000Z',
-  },
-  {
-    id: '6',
-    urutan: 6,
-    nama: 'D2. Kepanitiaan',
-    deskripsi: 'Keaktifan - Mengikuti kepanitiaan. Skala 1-10 poin.',
-    opsiNilai: poinOptions('6', 10),
-    updatedAt: '2026-01-10T09:00:00.000Z',
-  },
-  {
-    id: '7',
-    urutan: 7,
-    nama: 'D3. Antusiasme Mandiri',
-    deskripsi: 'Keaktifan - Menunjukkan antusiasme tanpa diminta dalam kegiatan Kabinet. Skala 1-5 poin.',
-    opsiNilai: poinOptions('7', 5),
+    nama: 'D. Sosialisasi',
+    deskripsi: 'Membangun komunikasi, sikap sopan, ramah, & menghargai sesama warga asrama. Skala 1-20 poin.',
+    opsiNilai: [
+      { id: 'opt-4-1', label: 'Sering menunjukkan sikap kurang sopan atau tidak menghargai orang lain', score: 2 },
+      { id: 'opt-4-2', label: 'Kurang peduli terhadap lingkungan sosial', score: 5 },
+      { id: 'opt-4-3', label: 'Berinteraksi seperlunya saja', score: 8 },
+      { id: 'opt-4-4', label: 'Cukup ramah dan bisa bekerja sama', score: 11 },
+      { id: 'opt-4-5', label: 'Ramah, sopan, dan menghargai orang lain', score: 14 },
+      { id: 'opt-4-6', label: 'Menjadi pribadi yang positif dan mudah diajak kerja sama', score: 17 },
+      { id: 'opt-4-7', label: 'Menjadi teladan dalam sikap sopan, ramah, dan saling menghargai', score: 20 },
+    ],
     updatedAt: '2026-01-10T09:00:00.000Z',
   },
 ];
