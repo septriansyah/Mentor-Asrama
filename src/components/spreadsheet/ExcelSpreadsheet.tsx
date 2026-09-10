@@ -83,7 +83,6 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
   const [sortBy, setSortBy] = useState<'nama' | 'kelompok' | 'rata' | 'status'>('nama');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [activeCell, setActiveCell] = useState<ActiveCell | null>(null);
-  const [customValue, setCustomValue] = useState<string>('');
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -184,9 +183,6 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
   ) => {
     if (readOnly) return;
     setActiveCell({ menteeId, indikatorUrutan, columnLetter, rowIndex });
-
-    const currentScore = getScore(menteeId, indikatorUrutan);
-    setCustomValue(currentScore !== undefined ? String(currentScore) : '');
   };
 
   // Set score for active cell
@@ -674,40 +670,18 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
                 );
               })
             ) : (
-              <div className="text-xs text-slate-400 p-2">Belum ada opsi dropdown. Gunakan input angka manual.</div>
+              <div className="text-xs text-slate-400 p-2">Belum ada opsi dropdown untuk indikator ini.</div>
             )}
           </div>
 
-          {/* Manual Numeric Input Option */}
-          <div className="p-2.5 bg-slate-50 border-t border-slate-200 flex items-center gap-2">
-            <span className="text-xs text-slate-600 shrink-0 font-medium">Input Angka:</span>
-            <input
-              type="number"
-              min="0"
-              max="100"
-              value={customValue}
-              onChange={(e) => setCustomValue(e.target.value)}
-              placeholder="0-100"
-              className="w-20 bg-white border border-slate-300 rounded px-2 py-1 text-xs text-center font-mono font-bold outline-hidden focus:ring-1 focus:ring-sky-600"
-            />
-            <button
-              type="button"
-              onClick={() => {
-                const num = Number(customValue);
-                if (!isNaN(num) && num >= 0 && num <= 100) {
-                  handleSelectScore(num);
-                }
-              }}
-              className="px-2.5 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded text-xs font-semibold cursor-pointer"
-            >
-              Set
-            </button>
+          {/* Clear Score */}
+          <div className="p-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-end">
             <button
               type="button"
               onClick={handleClearScore}
-              className="ml-auto text-xs text-red-600 hover:text-red-700 hover:underline cursor-pointer"
+              className="text-xs text-red-600 hover:text-red-700 hover:underline cursor-pointer"
             >
-              Hapus
+              Hapus Nilai
             </button>
           </div>
         </div>
