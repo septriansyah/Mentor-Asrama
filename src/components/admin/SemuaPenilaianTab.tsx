@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Filter, CheckCircle2, AlertCircle, FileSpreadsheet, LayoutGrid, Lock, LockOpen } from 'lucide-react';
-import { Siswa, Indikator, Penilaian, ASSESSMENT_MONTHS, AssessmentMonth } from '../../types';
+import { Siswa, Indikator, Penilaian, ASSESSMENT_MONTHS, AssessmentMonth, isPenilaianLengkap } from '../../types';
 import { ExcelSpreadsheet } from '../spreadsheet/ExcelSpreadsheet';
 
 interface SemuaPenilaianTabProps {
@@ -41,8 +41,12 @@ export const SemuaPenilaianTab: React.FC<SemuaPenilaianTabProps> = ({
     mentees.forEach((mentee) => {
       const p = bulanPenilaianList.find((item) => item.siswaId === mentee.id);
       if (p?.nilai) {
-        const vals = Object.values(p.nilai) as number[];
-        if (indikatorList.length > 0 && vals.length === indikatorList.length) lengkap++;
+        // Hanya ambil skor TOTAL per indikator (nilai[urutan]) - bukan semua key di nilai,
+        // karena indikator gabungan (komponen) juga menyimpan skor tiap komponen di key terpisah.
+        const vals = indikatorList
+          .map((ind) => p.nilai[String(ind.urutan)])
+          .filter((v) => typeof v === 'number' && !isNaN(v));
+        if (isPenilaianLengkap(p.nilai, indikatorList)) lengkap++;
         vals.forEach((v) => allScores.push(v));
       }
     });
