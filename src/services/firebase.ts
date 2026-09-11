@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore } from 'firebase/firestore';
 
 // Konfigurasi diambil dari environment variable (lihat .env.example).
 // Vite hanya expose variabel berawalan VITE_ ke kode client-side.
@@ -20,4 +20,6 @@ if (!firebaseConfig.projectId) {
 }
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+// ignoreUndefinedProperties: field opsional (mis. Penilaian.catatan) yang bernilai undefined
+// tidak boleh membuat setDoc/updateDoc gagal - biarkan Firestore mengabaikannya, bukan error.
+export const db = initializeFirestore(app, { ignoreUndefinedProperties: true });

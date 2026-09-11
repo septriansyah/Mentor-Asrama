@@ -218,6 +218,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
       bulan,
       kamar: mentee.kamar,
       nilai: updatedNilai,
+      catatan: existing?.catatan,
       diisiOleh: currentMentorName,
     });
 
@@ -259,6 +260,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
       bulan,
       kamar: mentee.kamar,
       nilai: updatedNilai,
+      catatan: existing?.catatan,
       diisiOleh: currentMentorName,
     });
 
@@ -294,12 +296,35 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
       bulan,
       kamar: mentee.kamar,
       nilai: updatedNilai,
+      catatan: existing.catatan,
       diisiOleh: currentMentorName,
     });
 
     setSavedNotice(`Nilai sel berhasil dihapus`);
     setTimeout(() => setSavedNotice(null), 2500);
     setActiveCell(null);
+  };
+
+  // Simpan catatan bebas per mentee untuk bulan yang aktif - nilai skor yang sudah ada tetap dipertahankan.
+  const handleSaveCatatan = (menteeId: string, catatan: string) => {
+    const mentee = mentees.find((m) => m.id === menteeId);
+    if (!mentee) return;
+
+    const existing = penilaianList.find((p) => p.siswaId === menteeId);
+    const trimmed = catatan.trim();
+    if ((existing?.catatan || '') === trimmed) return; // tidak berubah, tidak perlu simpan ulang
+
+    onSavePenilaian({
+      siswaId: menteeId,
+      bulan,
+      kamar: mentee.kamar,
+      nilai: existing?.nilai || {},
+      catatan: trimmed,
+      diisiOleh: currentMentorName,
+    });
+
+    setSavedNotice('Catatan berhasil disimpan');
+    setTimeout(() => setSavedNotice(null), 2500);
   };
 
   // Active indicator definition for popover
@@ -315,10 +340,11 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
   }, [activeCell, mentees]);
 
   // Kolom bergaya Excel: A: No, B: Nama, C: Angkatan, D: Kelompok, lalu satu kolom per indikator
-  // (E, F, G, ... mengikuti jumlah indikator - tidak lagi tetap 5), diakhiri Rata-rata & Status.
+  // (E, F, G, ... mengikuti jumlah indikator - tidak lagi tetap 5), diakhiri Rata-rata, Status & Catatan.
   const indicatorCols = indikatorList.map((_, i) => excelColumnLetter(4 + i));
   const rataRataCol = excelColumnLetter(4 + indikatorList.length);
   const statusCol = excelColumnLetter(4 + indikatorList.length + (showAverage ? 1 : 0));
+  const catatanCol = excelColumnLetter(4 + indikatorList.length + (showAverage ? 1 : 0) + 1);
   const firstIndCol = indicatorCols[0] || 'E';
   const lastIndCol = indicatorCols[indicatorCols.length - 1] || 'E';
 
@@ -462,7 +488,8 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
               {showAverage && (
                 <th className="w-20 border-r border-slate-300 py-1 font-mono">{rataRataCol}</th>
               )}
-              <th className="w-28 border-slate-300 py-1 font-mono">{statusCol}</th>
+              <th className="w-28 border-r border-slate-300 py-1 font-mono">{statusCol}</th>
+              <th className="w-48 border-slate-300 py-1 font-mono">{catatanCol}</th>
             </tr>
 
             {/* Semantic Column Labels */}
@@ -487,7 +514,8 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
               {showAverage && (
                 <th className="border-r border-slate-300 py-2 text-center">Rata²</th>
               )}
-              <th className="py-2 text-center">Status</th>
+              <th className="border-r border-slate-300 py-2 text-center">Status</th>
+              <th className="py-2 text-center">Catatan</th>
             </tr>
           </thead>
 
@@ -495,7 +523,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
           <tbody className="divide-y divide-slate-200">
             {filteredMentees.length === 0 ? (
               <tr>
-                <td colSpan={(showAverage ? 6 : 5) + indikatorList.length} className="py-10 text-center text-slate-400">
+                <td colSpan={(showAverage ? 7 : 6) + indikatorList.length} className="py-10 text-center text-slate-400">
                   Tidak ada data mentee yang sesuai filter atau pencarian.
                 </td>
               </tr>
@@ -605,7 +633,7 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
                     )}
 
                     {/* Column K: Status Kelengkapan */}
-                    <td className="py-2 px-2 text-center">
+                    <td className="border-r border-slate-200 py-2 px-2 text-center">
                       {isComplete ? (
                         <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
                           <CheckCircle2 className="w-3 h-3 text-emerald-600" />
@@ -617,6 +645,22 @@ export const ExcelSpreadsheet: React.FC<ExcelSpreadsheetProps> = ({
                           Belum ({values.length}/{indikatorList.length})
                         </span>
                       )}
+                    </td>
+
+                    {/* Column L: Catatan bebas per mentee, per bulan */}
+                    <td className="py-1.5 px-2">
+                      <input
+                        type="text"
+                        key={`${mentee.id}-${bulan}`}
+                        defaultValue={assessment?.catatan || ''}
+                        onBlur={(e) => handleSaveCatatan(mentee.id, e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                        }}
+                        disabled={readOnly}
+                        placeholder="Tulis catatan..."
+                        className="w-full min-w-40 bg-transparent text-xs text-slate-700 border border-transparent hover:border-slate-300 focus:border-sky-500 focus:bg-white rounded px-2 py-1 outline-hidden transition-colors disabled:cursor-not-allowed"
+                      />
                     </td>
                   </tr>
                 );

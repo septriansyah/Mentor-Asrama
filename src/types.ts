@@ -74,6 +74,7 @@ export interface Penilaian {
   bulan: AssessmentMonth;
   kamar: string;
   nilai: PenilaianMap;
+  catatan?: string; // catatan bebas dari mentor untuk mentee ini, khusus bulan ini
   diisiOleh: string; // nama mentor
   lengkap: boolean; // true jika semua indikator (sejumlah apapun) sudah diisi untuk bulan ini
   updatedAt: string;

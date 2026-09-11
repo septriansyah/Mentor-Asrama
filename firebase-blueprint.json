@@ -50,6 +50,7 @@
         "bulan": { "type": "string", "enum": ["September", "Oktober", "November", "Desember"] },
         "kamar": { "type": "string", "maxLength": 20 },
         "nilai": { "type": "object", "description": "Map urutan indikator -> skor 0-100" },
+        "catatan": { "type": "string", "maxLength": 2000, "description": "Catatan bebas mentor untuk mentee ini, khusus bulan ini" },
         "diisiOleh": { "type": "string", "maxLength": 100 },
         "lengkap": { "type": "boolean" },
         "updatedAt": { "type": "string", "format": "date-time" }

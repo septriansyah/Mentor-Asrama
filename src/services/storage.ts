@@ -246,6 +246,7 @@ export const StorageService = {
       ...indikatorList.map((ind, i) => ind.nama || `Indikator ${i + 1}`),
       'Diisi Oleh',
       'Status Kelengkapan',
+      'Catatan',
     ];
 
     const mentees = siswaList.filter((s) => s.status === 'Mentee');
@@ -272,6 +273,7 @@ export const StorageService = {
         ...indikatorVals,
         diisiOleh,
         statusKelengkapan,
+        p?.catatan || '-',
       ];
     });
 
