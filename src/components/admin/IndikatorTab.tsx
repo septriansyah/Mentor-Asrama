@@ -12,6 +12,11 @@ import {
 } from 'lucide-react';
 import { Indikator, OpsiNilai } from '../../types';
 
+// Key gabungan untuk state opsi baru per komponen (bukan per indikator langsung)
+function komponenOptionKey(indicatorId: string, komponenId: string): string {
+  return `${indicatorId}::${komponenId}`;
+}
+
 interface IndikatorTabProps {
   indikatorList: Indikator[];
   onUpdateIndikator: (item: Indikator) => void;
@@ -115,6 +120,92 @@ export const IndikatorTab: React.FC<IndikatorTabProps> = ({
           };
         }
         return ind;
+      })
+    );
+  };
+
+  // Ubah nama satu komponen di dalam indikator gabungan
+  const handleChangeKomponenNama = (indicatorId: string, komponenId: string, value: string) => {
+    setItems((prev) =>
+      prev.map((ind) => {
+        if (ind.id !== indicatorId || !ind.komponen) return ind;
+        return {
+          ...ind,
+          komponen: ind.komponen.map((k) => (k.id === komponenId ? { ...k, nama: value } : k)),
+        };
+      })
+    );
+  };
+
+  // Tambah opsi dropdown baru untuk satu komponen di dalam indikator gabungan
+  const handleAddKomponenOption = (indicatorId: string, komponenId: string) => {
+    const key = komponenOptionKey(indicatorId, komponenId);
+    const input = newOptionState[key];
+    if (!input || !input.label.trim()) return;
+
+    setItems((prev) =>
+      prev.map((ind) => {
+        if (ind.id !== indicatorId || !ind.komponen) return ind;
+        return {
+          ...ind,
+          komponen: ind.komponen.map((k) => {
+            if (k.id !== komponenId) return k;
+            const newOpt: OpsiNilai = {
+              id: `opt-${komponenId}-${Date.now()}`,
+              label: input.label.trim(),
+              score: Number(input.score) || 5,
+            };
+            return { ...k, opsiNilai: [...k.opsiNilai, newOpt] };
+          }),
+        };
+      })
+    );
+
+    setNewOptionState((prev) => ({ ...prev, [key]: { label: '', score: 5 } }));
+  };
+
+  // Hapus opsi dropdown dari satu komponen
+  const handleDeleteKomponenOption = (indicatorId: string, komponenId: string, optionId: string) => {
+    setItems((prev) =>
+      prev.map((ind) => {
+        if (ind.id !== indicatorId || !ind.komponen) return ind;
+        return {
+          ...ind,
+          komponen: ind.komponen.map((k) =>
+            k.id === komponenId
+              ? { ...k, opsiNilai: k.opsiNilai.filter((o) => o.id !== optionId) }
+              : k
+          ),
+        };
+      })
+    );
+  };
+
+  // Ubah label/skor satu opsi milik komponen
+  const handleUpdateKomponenOption = (
+    indicatorId: string,
+    komponenId: string,
+    optionId: string,
+    field: 'label' | 'score',
+    val: any
+  ) => {
+    setItems((prev) =>
+      prev.map((ind) => {
+        if (ind.id !== indicatorId || !ind.komponen) return ind;
+        return {
+          ...ind,
+          komponen: ind.komponen.map((k) => {
+            if (k.id !== komponenId) return k;
+            return {
+              ...k,
+              opsiNilai: k.opsiNilai.map((o) =>
+                o.id === optionId
+                  ? { ...o, [field]: field === 'score' ? Number(val) || 0 : val }
+                  : o
+              ),
+            };
+          }),
+        };
       })
     );
   };
@@ -252,29 +343,124 @@ export const IndikatorTab: React.FC<IndikatorTabProps> = ({
                 />
               </div>
 
-              {/* Indikator Gabungan (komponen) - read-only, dikelola lewat kode aplikasi */}
+              {/* Indikator Gabungan (komponen) - tiap komponen & opsi dropdownnya bisa diedit */}
               {ind.komponen && ind.komponen.length > 0 ? (
-                <div className="ml-11 pt-2 border-t border-slate-100">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-700 mb-2">
-                    <Sparkles className="w-3.5 h-3.5 text-navy-600" />
-                    <span>Indikator Gabungan ({ind.komponen.length} Komponen)</span>
-                  </div>
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
-                    <p className="text-[11px] text-slate-500 leading-relaxed">
-                      Indikator ini terdiri dari beberapa komponen yang diisi terpisah lalu skornya dijumlahkan otomatis menjadi satu nilai. Struktur komponen &amp; pilihan skornya dikelola lewat kode aplikasi, bukan dari halaman ini.
-                    </p>
-                    <div className="space-y-1.5">
-                      {ind.komponen.map((komp) => (
-                        <div
-                          key={komp.id}
-                          className="bg-white p-2 rounded-lg border border-slate-200 text-xs text-slate-700"
-                        >
-                          <span className="font-semibold">{komp.nama}</span>
-                          <span className="text-slate-400"> - {komp.opsiNilai.length} opsi</span>
-                        </div>
-                      ))}
+                <div className="ml-11 pt-2 border-t border-slate-100 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                      <Sparkles className="w-3.5 h-3.5 text-navy-600" />
+                      <span>Indikator Gabungan ({ind.komponen.length} Komponen)</span>
                     </div>
+                    <span className="text-[11px] text-slate-400">
+                      Skor tiap komponen dijumlahkan otomatis jadi satu nilai
+                    </span>
                   </div>
+
+                  {ind.komponen.map((komp) => {
+                    const key = komponenOptionKey(ind.id, komp.id);
+                    const currentNewKompOpt = newOptionState[key] || { label: '', score: 5 };
+
+                    return (
+                      <div
+                        key={komp.id}
+                        className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2"
+                      >
+                        <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                          Nama Komponen
+                        </label>
+                        <input
+                          type="text"
+                          value={komp.nama}
+                          onChange={(e) => handleChangeKomponenNama(ind.id, komp.id, e.target.value)}
+                          placeholder="Nama komponen..."
+                          className="w-full px-3 py-1.5 text-sm font-semibold text-slate-900 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-navy-500 outline-hidden transition-colors"
+                        />
+
+                        <div className="space-y-1.5 pt-1">
+                          {komp.opsiNilai.map((opt) => (
+                            <div
+                              key={opt.id}
+                              className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200"
+                            >
+                              <input
+                                type="text"
+                                value={opt.label}
+                                onChange={(e) =>
+                                  handleUpdateKomponenOption(ind.id, komp.id, opt.id, 'label', e.target.value)
+                                }
+                                className="flex-1 text-xs text-slate-800 bg-transparent border-b border-transparent focus:border-navy-500 outline-hidden px-1 py-0.5"
+                                placeholder="Deskripsi Pilihan..."
+                              />
+                              <div className="flex items-center gap-1 shrink-0">
+                                <span className="text-[11px] text-slate-400">Skor:</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={opt.score}
+                                  onChange={(e) =>
+                                    handleUpdateKomponenOption(ind.id, komp.id, opt.id, 'score', e.target.value)
+                                  }
+                                  className="w-14 text-xs font-mono font-bold text-center bg-slate-100 border border-slate-300 rounded px-1 py-0.5"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteKomponenOption(ind.id, komp.id, opt.id)}
+                                  className="text-slate-400 hover:text-red-500 p-1 rounded transition-colors cursor-pointer"
+                                  title="Hapus opsi"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Add new option row for this komponen */}
+                        <div className="pt-2 border-t border-slate-200 flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={currentNewKompOpt.label}
+                            onChange={(e) =>
+                              setNewOptionState((prev) => ({
+                                ...prev,
+                                [key]: { label: e.target.value, score: currentNewKompOpt.score },
+                              }))
+                            }
+                            placeholder="Tambah teks pilihan baru..."
+                            className="flex-1 text-xs bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 outline-hidden focus:ring-1 focus:ring-navy-500"
+                          />
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span className="text-[11px] text-slate-500">Skor:</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={currentNewKompOpt.score}
+                              onChange={(e) =>
+                                setNewOptionState((prev) => ({
+                                  ...prev,
+                                  [key]: {
+                                    label: currentNewKompOpt.label,
+                                    score: Number(e.target.value) || 0,
+                                  },
+                                }))
+                              }
+                              className="w-14 text-xs font-mono font-bold text-center bg-white border border-slate-300 rounded-lg px-1 py-1.5"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleAddKomponenOption(ind.id, komp.id)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-navy-600 hover:bg-navy-700 text-white rounded-lg text-xs font-semibold shrink-0 cursor-pointer transition-colors"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Tambah</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
               /* Collapsible Dropdown Options Manager */
